@@ -6,7 +6,7 @@ React-based music streaming frontend for Musify, deployed on Vercel.
 
 ## 🌐 Live
 
-https://musifyy-self.vercel.app
+[https://musifyy-self.vercel.app](https://musify-vert.vercel.app/login)
 
 ---
 
