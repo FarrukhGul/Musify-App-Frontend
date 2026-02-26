@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { musicAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlayer } from '../../hooks/usePlayer';
+import { GradientCover } from '../../utils/gradients.jsx';
 
 const MUSIC_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 24 24' fill='%23282828'%3E%3Cpath d='M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z'/%3E%3C/svg%3E";
 
@@ -106,23 +107,19 @@ const MusicList = () => {
             className="bg-spotify-dark p-4 rounded-lg hover:bg-spotify-light transition group cursor-pointer"
             onClick={() => handlePlay(track)}
           >
-            <div className="relative">
-              <img
-                src={track.coverImage || MUSIC_PLACEHOLDER}
-                alt={track.title}
-                className="w-full aspect-square object-cover rounded-md mb-4"
-                onError={(e) => {
-                  e.target.src = MUSIC_PLACEHOLDER;
-                }}
-              />
-              <button className="absolute bottom-4 right-4 w-12 h-12 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg hover:scale-105">
-                {currentTrack?._id === track._id && isPlaying ? (
-                  <span className="text-white text-xl">⏸️</span>
-                ) : (
-                  <span className="text-white text-xl">▶</span>
-                )}
-              </button>
-            </div>
+        
+<div className="relative">
+  {track.coverImage 
+    ? <img src={track.coverImage} alt={track.title} className="w-full aspect-square object-cover rounded-md mb-4"/>
+    : <GradientCover title={track.title} />
+  }
+  <button className="absolute bottom-4 right-4 w-12 h-12 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg hover:scale-105">
+    {currentTrack?._id === track._id && isPlaying 
+      ? <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+      : <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    }
+  </button>
+</div>
             <h3 className="font-semibold truncate">{track.title}</h3>
             <p className="text-sm text-spotify-gray truncate">
               {/* Fix: Check if artist is an object or string */}

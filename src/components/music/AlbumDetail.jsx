@@ -1,16 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { musicAPI } from '../../services/api';
-import { usePlayer } from '../../hooks/usePlayer';
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { musicAPI } from "../../services/api";
+import { usePlayer } from "../../hooks/usePlayer";
+import { getGradient } from "../../utils/gradients.jsx";
 
-const ALBUM_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 24 24' fill='%23282828'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z'/%3E%3C/svg%3E";
+const ALBUM_PLACEHOLDER =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 24 24' fill='%23282828'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z'/%3E%3C/svg%3E";
 
 const AlbumDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { playTrack } = usePlayer();
 
   const fetchAlbum = useCallback(async () => {
@@ -18,15 +20,15 @@ const AlbumDetail = () => {
       setLoading(true);
       const data = await musicAPI.getAlbum(id);
       setAlbum(data);
-      setError('');
+      setError("");
     } catch (err) {
-      console.error('Fetch album error:', err);
+      console.error("Fetch album error:", err);
       if (err.response?.status === 404) {
-        setError('Album not found');
+        setError("Album not found");
       } else if (err.response?.status === 403) {
-        setError('You do not have permission to view this album');
+        setError("You do not have permission to view this album");
       } else {
-        setError('Failed to load album');
+        setError("Failed to load album");
       }
       setAlbum(null);
     } finally {
@@ -62,11 +64,11 @@ const AlbumDetail = () => {
     return (
       <div className="text-center py-12">
         <div className="bg-red-500/10 border border-red-500 text-red-500 px-6 py-4 rounded-lg inline-block mb-4">
-          {error || 'Album not found'}
+          {error || "Album not found"}
         </div>
         <div>
           <button
-            onClick={() => navigate('/albums')}
+            onClick={() => navigate("/albums")}
             className="text-spotify-green hover:underline"
           >
             ← Back to Albums
@@ -83,7 +85,27 @@ const AlbumDetail = () => {
       {/* Album Header */}
       <div className="flex flex-col md:flex-row items-start md:items-end gap-6 mb-8">
         <img
-          src={album.coverImage || ALBUM_PLACEHOLDER}
+          src={
+            album.coverImage ? (
+              <img
+                src={album.coverImage}
+                alt={album.title}
+                className="w-32 h-32 sm:w-48 sm:h-48 object-cover rounded-lg shadow-2xl"
+              />
+            ) : (
+              <div
+                className={`w-32 h-32 sm:w-48 sm:h-48 rounded-lg shadow-2xl bg-gradient-to-br ${getGradient(album.title)} flex items-center justify-center flex-shrink-0`}
+              >
+                <svg
+                  className="w-16 h-16 text-white opacity-80"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z" />
+                </svg>
+              </div>
+            )
+          }
           alt={album.title}
           className="w-32 h-32 sm:w-48 sm:h-48 object-cover rounded-lg shadow-2xl"
           onError={(e) => {
@@ -91,13 +113,17 @@ const AlbumDetail = () => {
           }}
         />
         <div>
-          <p className="text-sm text-spotify-green uppercase font-semibold">Album</p>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mt-2 mb-4">{album.title}</h1>
+          <p className="text-sm text-spotify-green uppercase font-semibold">
+            Album
+          </p>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mt-2 mb-4">
+            {album.title}
+          </h1>
           <p className="text-sm sm:text-base text-spotify-gray">
-            {typeof album.artist === 'object'
-              ? (album.artist?.username || 'Unknown Artist')
-              : (album.artist || 'Unknown Artist')
-            } • {tracks.length} track{tracks.length !== 1 ? 's' : ''}
+            {typeof album.artist === "object"
+              ? album.artist?.username || "Unknown Artist"
+              : album.artist || "Unknown Artist"}{" "}
+            • {tracks.length} track{tracks.length !== 1 ? "s" : ""}
           </p>
         </div>
       </div>
@@ -129,22 +155,27 @@ const AlbumDetail = () => {
                   {track.title}
                 </p>
                 <p className="text-xs text-spotify-gray sm:hidden">
-                  {typeof track.artist === 'object'
-                    ? (track.artist?.username || 'Unknown Artist')
-                    : (track.artist || 'Unknown Artist')
-                  }
+                  {typeof track.artist === "object"
+                    ? track.artist?.username || "Unknown Artist"
+                    : track.artist || "Unknown Artist"}
                 </p>
               </div>
               <button className="opacity-0 group-hover:opacity-100 text-spotify-gray hover:text-white">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
+                <svg
+                  className="w-4 h-4 sm:w-5 sm:h-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
                 </svg>
               </button>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-center text-spotify-gray py-8">No tracks in this album</p>
+        <p className="text-center text-spotify-gray py-8">
+          No tracks in this album
+        </p>
       )}
     </div>
   );
