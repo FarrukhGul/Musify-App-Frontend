@@ -1,32 +1,29 @@
-# 🎵 Musify
+# 🎵 Musify — Frontend
 
-A full-stack music streaming web app built with React, Node.js, MongoDB, and deployed on Vercel + Render.
+React-based music streaming frontend for Musify, deployed on Vercel.
 
-![Musify](https://img.shields.io/badge/Status-Live-brightgreen) ![React](https://img.shields.io/badge/React-18-blue) ![Node.js](https://img.shields.io/badge/Node.js-Express-green) ![MongoDB](https://img.shields.io/badge/Database-MongoDB-green)
+![React](https://img.shields.io/badge/React-18-blue) ![Vite](https://img.shields.io/badge/Build-Vite-purple) ![Tailwind](https://img.shields.io/badge/Style-TailwindCSS-cyan) ![Vercel](https://img.shields.io/badge/Deployed-Vercel-black)
 
-## 🌐 Live Demo
+## 🌐 Live
 
-- **Frontend:** https://musifyy-self.vercel.app
-- **Backend:** https://musify-app-backend.onrender.com
+https://musifyy-self.vercel.app
 
 ---
 
 ## ✨ Features
 
 - 🎧 Stream music directly in the browser
-- 🎤 Artist accounts — upload tracks and create albums
-- 👤 User accounts — browse and play all music
-- 💿 Album creation with track selection
+- 👤 User & Artist role-based views
+- 💿 Browse albums and tracks
 - 🎨 Dynamic gradient covers for tracks and albums
-- 📱 Fully responsive — works on mobile and desktop
-- 🔐 JWT-based authentication (Bearer token)
-- ▶️ Persistent audio player with prev/next/volume controls
+- 📱 Fully responsive — mobile + desktop
+- ▶️ Persistent audio player with prev/next/volume/seek
+- 🔐 JWT Bearer token authentication
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend
 | Tech | Usage |
 |------|-------|
 | React 18 | UI Framework |
@@ -35,68 +32,36 @@ A full-stack music streaming web app built with React, Node.js, MongoDB, and dep
 | React Router v6 | Routing |
 | Axios | API calls |
 
-### Backend
-| Tech | Usage |
-|------|-------|
-| Node.js + Express | Server |
-| MongoDB + Mongoose | Database |
-| JWT | Authentication |
-| Multer | File uploads |
-| bcryptjs | Password hashing |
-| ImageKit | Audio file storage |
-
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js v18+
-- MongoDB Atlas account
-- ImageKit account
-
-### Clone the repo
+### Install
 
 ```bash
-git clone https://github.com/FarrukhGul/Musify-App-Frontend.git
-cd Musify-App-Frontend
-```
-
-### Frontend Setup
-
-```bash
-cd frontend
 npm install
 ```
 
-Create `.env` file:
+### Environment Variables
+
+Create `.env` in the root:
+
 ```env
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=http://localhost:5000/api
 ```
+
+> For production, set `VITE_API_URL` in Vercel dashboard → Settings → Environment Variables
+
+### Run
 
 ```bash
 npm run dev
 ```
 
-### Backend Setup
+### Build
 
 ```bash
-cd backend
-npm install
-```
-
-Create `.env` file:
-```env
-PORT=3000
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
-IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
-IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
-NODE_ENV=development
-```
-
-```bash
-npm start
+npm run build
 ```
 
 ---
@@ -104,47 +69,39 @@ npm start
 ## 📁 Project Structure
 
 ```
-frontend/
-├── src/
-│   ├── components/
-│   │   ├── auth/          # Login, Register, ProtectedRoute
-│   │   ├── layout/        # Navbar, Layout
-│   │   ├── music/         # MusicList, AlbumList, AlbumDetail, Upload, CreateAlbum
-│   │   └── player/        # AudioPlayer
-│   ├── context/           # AuthContext
-│   ├── hooks/             # useAuth, usePlayer
-│   ├── providers/         # AuthProvider, PlayerProvider
-│   ├── services/          # api.js (Axios)
-│   └── utils/             # GradientCover, gradientColors
-
-backend/
-├── src/
-│   ├── controllers/       # auth.controller, music.controller
-│   ├── middlewares/       # auth.middleware
-│   ├── models/            # user.model, music.model, album.model
-│   ├── routes/            # auth.routes, music.routes
-│   └── services/          # storage.service (ImageKit)
+src/
+├── components/
+│   ├── auth/           # Login, Register, ProtectedRoute
+│   ├── layout/         # Navbar, Layout
+│   ├── music/          # MusicList, AlbumList, AlbumDetail, UploadMusic, CreateAlbum
+│   └── player/         # AudioPlayer
+├── context/            # AuthContext
+├── hooks/              # useAuth, usePlayer
+├── providers/          # AuthProvider, PlayerProvider
+├── services/           # api.js (Axios instance + interceptors)
+└── utils/              # GradientCover.jsx, gradientColors.js
 ```
 
 ---
 
 ## 🔐 Roles
 
-| Role | Permissions |
-|------|-------------|
+| Role | Access |
+|------|--------|
 | **User** | Browse music, play tracks, view albums |
 | **Artist** | Upload music, create albums, manage tracks |
 
 ---
 
-## 🌍 Deployment
+## 🌍 Deployment (Vercel)
 
-| Service | Platform |
-|---------|----------|
-| Frontend | Vercel |
-| Backend | Render |
-| Database | MongoDB Atlas |
-| Storage | ImageKit |
+`vercel.json` is included for SPA routing:
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+}
+```
 
 ---
 
