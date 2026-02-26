@@ -21,32 +21,31 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+
+
   const login = async (credentials) => {
-    try {
-      const response = await authAPI.login(credentials);
-      console.log('Login response:', response);
-      
-      // Get the role from localStorage (set during registration)
-      const pendingRole = localStorage.getItem('pendingRole');
-      localStorage.removeItem('pendingRole');
-      
-      // Extract user data from response or use defaults
-      const userData = response.data?.user || { 
-        email: credentials.email,
-        role: pendingRole || 'user'
-      };
-      
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return { success: true, user: userData };
-    } catch (error) {
-      console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login failed' 
-      };
-    }
-  };
+  try {
+    const response = await authAPI.login(credentials);
+    const { user: userData, token } = response.data;
+    
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', token);  // ← store token
+    
+    setUser(userData);
+    return { success: true, user: userData };
+  } catch (error) {
+    return { success: false, error: error.response?.data?.message || 'Login failed' };
+  }
+};
+
+const logout = async () => {
+  try { await authAPI.logout(); } catch (e) {
+    console.error('Logout error:', e);
+  }
+  setUser(null);
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');  // ← clear token
+};
 
   const register = async (userData) => {
     try {
@@ -68,17 +67,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-      localStorage.removeItem('user');
-      localStorage.removeItem('pendingRole');
-    }
-  };
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout }}>
