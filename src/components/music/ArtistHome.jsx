@@ -15,6 +15,7 @@ const ArtistHome = () => {
 
   useEffect(() => {
     if (user) {
+      console.log('👤 User object:', user); // Debug log
       fetchData();
     }
   }, [user]);
@@ -28,34 +29,41 @@ const ArtistHome = () => {
       
       setMyMusic(Array.isArray(music) ? music : []);
       
-      // ✅ FIXED: Use _id instead of id
+      // ✅ FIXED: Get user ID properly (could be _id or id)
       const allAlbums = Array.isArray(albums) ? albums : [];
-      console.log('All albums:', allAlbums);
-      console.log('Current user ID:', user?._id);
+      console.log('📀 All albums:', allAlbums);
+      
+      // Try both _id and id
+      const currentUserId = user?._id || user?.id;
+      console.log('🆔 Current user ID:', currentUserId);
+      
+      if (!currentUserId) {
+        console.error('❌ No user ID found!');
+        setMyAlbums([]);
+        return;
+      }
       
       const myAlbumsFiltered = allAlbums.filter(album => {
-        // Get artist ID properly
+        // Get artist ID properly (could be nested or direct)
         let albumArtistId;
         if (typeof album.artist === 'object') {
-          albumArtistId = album.artist?._id;
+          albumArtistId = album.artist?._id || album.artist?.id;
         } else {
           albumArtistId = album.artist;
         }
         
         // Convert to string for comparison
-        albumArtistId = albumArtistId?.toString();
-        const currentUserId = user?._id?.toString();
+        const match = albumArtistId?.toString() === currentUserId?.toString();
+        console.log(`🎵 Album "${album.title}" - Artist: ${albumArtistId}, Match: ${match}`);
         
-        console.log(`Album "${album.title}" - Artist: ${albumArtistId}, Current: ${currentUserId}, Match: ${albumArtistId === currentUserId}`);
-        
-        return albumArtistId === currentUserId;
+        return match;
       });
       
-      console.log('Filtered albums:', myAlbumsFiltered);
+      console.log('✅ Filtered albums:', myAlbumsFiltered);
       setMyAlbums(myAlbumsFiltered);
       
     } catch (err) {
-      console.error('Fetch error:', err);
+      console.error('❌ Fetch error:', err);
     } finally {
       setLoading(false);
     }
