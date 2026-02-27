@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { musicAPI } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { GradientCover } from '../../utils/gradients.jsx';
+import BackButton from '../layout/BackButton';
 
 const AlbumList = () => {
   const [albums, setAlbums] = useState([]);
@@ -111,6 +112,7 @@ const AlbumList = () => {
 
   return (
     <div>
+      <BackButton />
       <h1 className="text-3xl font-bold mb-8">
         {user?.role === 'artist' ? 'My Albums' : 'Albums'}
       </h1>

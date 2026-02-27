@@ -4,6 +4,7 @@ import { musicAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { FiUpload, FiMusic, FiCheckCircle, FiAlertCircle, FiTag } from 'react-icons/fi';
 import { FcIdea } from "react-icons/fc";
+import BackButton from '../layout/BackButton';
 
 const UploadMusic = () => {
   const [formData, setFormData] = useState({ title: '', tags: '', file: null });
@@ -91,6 +92,7 @@ const UploadMusic = () => {
 
   return (
     <div className="max-w-2xl mx-auto px-4">
+      <BackButton />
       <h1 className="text-3xl font-bold mb-2">Upload Music</h1>
       <p className="text-gray-400 mb-8 text-sm">Share your tracks with the world</p>
 

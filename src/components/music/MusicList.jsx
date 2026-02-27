@@ -5,6 +5,7 @@ import { usePlayer } from '../../hooks/usePlayer';
 import { GradientCover } from '../../utils/gradients.jsx';
 import { FiPlay, FiPause, FiSearch, FiUpload, FiX } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import BackButton from '../layout/BackButton';
 
 const MusicList = () => {
   const [music, setMusic] = useState([]);
@@ -126,6 +127,7 @@ const MusicList = () => {
 
   return (
     <div className="space-y-6">
+        <BackButton />
       {/* Header + Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">

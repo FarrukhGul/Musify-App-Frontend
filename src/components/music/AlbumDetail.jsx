@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { musicAPI } from "../../services/api";
 import { usePlayer } from "../../hooks/usePlayer";
 import { getGradient } from "../../utils/gradients.jsx";
+import BackButton from '../layout/BackButton';
 
 const ALBUM_PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 24 24' fill='%23282828'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z'/%3E%3C/svg%3E";
@@ -82,6 +83,8 @@ const AlbumDetail = () => {
 
   return (
     <div className="px-4 sm:px-6">
+
+      <BackButton />
       {/* Album Header */}
       <div className="flex flex-col md:flex-row items-start md:items-end gap-6 mb-8">
         <img
