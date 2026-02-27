@@ -24,7 +24,7 @@ const MusicList = () => {
     else setLoading(false);
   }, [user]);
 
-  // 🎯 FIXED: Debounced search with better error handling
+  // Debounced search with better error handling
   useEffect(() => {
     if (!searchTerm.trim()) { 
       setSearchResults(null); 
@@ -77,7 +77,7 @@ const MusicList = () => {
     }
   };
 
-  // 🎯 FIXED: Get display music based on search state
+  // Get display music based on search state
   const getDisplayMusic = () => {
     if (searchTerm && searchResults !== null) {
       return searchResults;
@@ -85,13 +85,13 @@ const MusicList = () => {
     return music;
   };
 
-  // 🎯 FIXED: Handle play with proper queue based on current view
+  //  Handle play with proper queue based on current view
   const handlePlayTrack = (track) => {
     const currentDisplay = getDisplayMusic();
     playTrack(track, currentDisplay);
   };
 
-  // 🎯 FIXED: Clear search
+  //  Clear search
   const clearSearch = () => {
     setSearchTerm('');
     setSearchResults(null);
@@ -100,7 +100,7 @@ const MusicList = () => {
   const displayMusic = getDisplayMusic();
 
   if (loading) return (
-    <div className="flex justify-center items-center min-h-[400px]">
+    <div className="flex justify-center items-center min-h-100">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-spotify-green"></div>
     </div>
   );
@@ -130,8 +130,8 @@ const MusicList = () => {
         <BackButton />
       {/* Header + Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">
-          {user?.role === 'artist' ? 'My Tracks' : 'Your Music'}
+       <h1 className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold ">
+          {user?.role === 'artist' ? 'My Tracks' : 'Your Musics'}
         </h1>
         
         {/* Search Bar with Clear Button */}

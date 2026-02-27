@@ -113,7 +113,7 @@ const AlbumList = () => {
   return (
     <div>
       <BackButton />
-      <h1 className="text-3xl font-bold mb-8">
+      <h1 className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold mb-8">
         {user?.role === 'artist' ? 'My Albums' : 'Albums'}
       </h1>
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">

@@ -136,10 +136,11 @@ const ArtistHome = () => {
             <Link to="/upload" className="text-spotify-green text-sm hover:underline mt-2 inline-block">Upload your first track →</Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
             {myMusic.slice(0, 4).map((track) => (
               <div key={track._id}
-                className="bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all duration-300 group cursor-pointer"
+                className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 transition-all duration-300 group cursor-pointer"
+
                 onClick={() => playTrack(track, myMusic)}
               >
                 <div className="relative">
@@ -178,10 +179,10 @@ const ArtistHome = () => {
             <Link to="/create-album" className="text-spotify-green text-sm hover:underline mt-2 inline-block">Create your first album →</Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {myAlbums.slice(0, 4).map((album) => (
               <Link key={album._id} to={`/albums/${album._id}`}
-                className="bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all duration-300 group"
+                className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 transition-all duration-300 group"
               >
                 <GradientCover title={album.title} />
                 <h3 className="font-semibold truncate text-white text-sm mt-1">{album.title}</h3>

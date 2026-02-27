@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiMusic, FiHeart, FiGithub, FiInstagram, FiTwitter } from 'react-icons/fi';
+import { FiMusic, FiHeart, FiGithub, FiInstagram, FiTwitter, FiLinkedin } from 'react-icons/fi';
 
 const BAR_HEIGHTS = [8, 14, 10, 18, 12, 16, 9, 13, 17, 11, 15, 8, 14, 10, 18, 12];
 
@@ -19,9 +19,9 @@ const Footer = () => {
 
                     {/* Brand */}
                     <div>
-                        <div className="flex items-center space-x-3 mb-4">
+                        <div className="flex items-center space-x-3 mb-4 text-center">
                             {/* Animated bars */}
-                            <div className="flex items-end space-x-0.5 h-6">
+                            <div className="flex items-end space-x-0.5 h-6 ">
                                 {BAR_HEIGHTS.slice(0, 5).map((h, i) => (
                                     <div
                                         key={i}
@@ -33,21 +33,21 @@ const Footer = () => {
                                     />
                                 ))}
                             </div>
-                            <span className="text-xl font-bold">
+                            <span className="text-xl text-center font-bold">
                                 <span className="text-white">Musi</span>
                                 <span className="text-spotify-green">fy</span>
                             </span>
                         </div>
-                        <p className="text-gray-500 text-sm leading-relaxed">
+                        <p className="text-gray-500 text-sm leading-relaxed text-center">
                             Stream your favorite music anytime, anywhere. Upload, share, and discover new tracks.
                         </p>
 
                         {/* Social Links */}
                         <div className="flex items-center space-x-3 mt-5">
                             {[
-                                { Icon: FiGithub, href: 'https://github.com' },
-                                { Icon: FiInstagram, href: 'https://instagram.com' },
-                                { Icon: FiTwitter, href: 'https://twitter.com' },
+                                { Icon: FiGithub, href:'https://github.com/FarrukhGul' },
+                                { Icon: FiInstagram, href : "https://www.instagram.com/cybercodeforge" },
+                                { Icon: FiLinkedin,  href :"https://www.linkedin.com/in/muhammad-farrukh-gul-695126336" },
                             ].map(({ Icon, href }, i) => (
                                 <a key={i} href={href} target="_blank" rel="noopener noreferrer"
                                     className="w-9 h-9 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-spotify-green hover:border-spotify-green/30 hover:bg-spotify-green/10 transition-all duration-300 hover:scale-110">
