@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import MobileSidebar from './MobileSidebar';
+
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -37,21 +38,35 @@ const Navbar = () => {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {user && (
-                <>
-                  <Link to="/" className="text-spotify-gray hover:text-white transition text-sm font-medium">Home</Link>
-                  <Link to="/music" className="text-spotify-gray hover:text-white transition text-sm font-medium">Music</Link>
-                  <Link to="/albums" className="text-spotify-gray hover:text-white transition text-sm font-medium">Albums</Link>
-                  {user.role === 'artist' && (
-                    <>
-                      <Link to="/upload" className="text-spotify-gray hover:text-white transition text-sm font-medium">Upload</Link>
-                      <Link to="/create-album" className="text-spotify-gray hover:text-white transition text-sm font-medium">Create Album</Link>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
+         <div className="hidden md:flex items-center space-x-8">
+  {user && (
+    <>
+      <NavLink to="/" end className={({ isActive }) =>
+        `text-sm font-medium transition ${isActive ? 'text-white border-b-2 border-spotify-green pb-0.5' : 'text-gray-400 hover:text-white'}`
+      }>Home</NavLink>
+
+      <NavLink to="/music" className={({ isActive }) =>
+        `text-sm font-medium transition ${isActive ? 'text-white border-b-2 border-spotify-green pb-0.5' : 'text-gray-400 hover:text-white'}`
+      }>Music</NavLink>
+
+      <NavLink to="/albums" className={({ isActive }) =>
+        `text-sm font-medium transition ${isActive ? 'text-white border-b-2 border-spotify-green pb-0.5' : 'text-gray-400 hover:text-white'}`
+      }>Albums</NavLink>
+
+      {user.role === 'artist' && (
+        <>
+          <NavLink to="/upload" className={({ isActive }) =>
+            `text-sm font-medium transition ${isActive ? 'text-white border-b-2 border-spotify-green pb-0.5' : 'text-gray-400 hover:text-white'}`
+          }>Upload</NavLink>
+
+          <NavLink to="/create-album" className={({ isActive }) =>
+            `text-sm font-medium transition ${isActive ? 'text-white border-b-2 border-spotify-green pb-0.5' : 'text-gray-400 hover:text-white'}`
+          }>Create Album</NavLink>
+        </>
+      )}
+    </>
+  )}
+</div>
 
             {/* Desktop User Menu */}
             <div className="hidden md:flex items-center space-x-4">

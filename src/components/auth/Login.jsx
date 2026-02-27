@@ -136,7 +136,7 @@ const Login = () => {
           <span>created by </span>
           <span className="text-spotify-green font-semibold">Farrukh Gul</span>
           <span className="mx-2 opacity-30">•</span>
-          <span>© 2024</span>
+          <span>© 2026</span>
         </div>
       </div>
     </div>

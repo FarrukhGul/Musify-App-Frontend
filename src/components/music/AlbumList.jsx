@@ -12,17 +12,47 @@ const AlbumList = () => {
 
   useEffect(() => {
     fetchAlbums();
-  }, []);
+  }, [user]);
 
   const fetchAlbums = async () => {
     try {
       setLoading(true);
       const data = await musicAPI.getAlbums();
-      setAlbums(Array.isArray(data) ? data : []);
-      setError("");
+      const allAlbums = Array.isArray(data) ? data : [];
+      
+      console.log('All albums:', allAlbums);
+      console.log('Current user:', user);
+
+      // ✅ FIXED: Use _id instead of id
+      if (user?.role === 'artist') {
+        const filtered = allAlbums.filter(album => {
+          // Get artist ID properly
+          let albumArtistId;
+          if (typeof album.artist === 'object') {
+            albumArtistId = album.artist?._id;
+          } else {
+            albumArtistId = album.artist;
+          }
+          
+          // Convert to string for comparison
+          albumArtistId = albumArtistId?.toString();
+          const currentUserId = user?._id?.toString();
+          
+          console.log(`Album "${album.title}" - Artist: ${albumArtistId}, Current: ${currentUserId}, Match: ${albumArtistId === currentUserId}`);
+          
+          return albumArtistId === currentUserId;
+        });
+        
+        console.log('Filtered albums:', filtered);
+        setAlbums(filtered);
+      } else {
+        setAlbums(allAlbums);
+      }
+      
+      setError('');
     } catch (err) {
-      console.error("Fetch albums error:", err);
-      setError("Failed to load albums");
+      console.log(err)
+      setError('Failed to load albums');
       setAlbums([]);
     } finally {
       setLoading(false);
@@ -74,7 +104,7 @@ const AlbumList = () => {
               ? <img src={album.coverImage} alt={album.title} className="w-full aspect-square object-cover rounded-md mb-4"/>
               : <GradientCover title={album.title} />
             }
-            <h3 className="font-semibold truncate">{album.title}</h3>
+            <h3 className="semibold truncate">{album.title}</h3>
             <p className="text-sm text-spotify-gray truncate">
               {typeof album.artist === "object"
                 ? album.artist?.username || "Unknown Artist"

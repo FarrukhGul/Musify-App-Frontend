@@ -15,16 +15,23 @@ import AudioPlayer from './components/player/AudioPlayer';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
 
+import ArtistHome from './components/music/ArtistHome';
+import UserHome from './components/music/UserHome';
+
 // Home component that redirects based on auth status
 const Home = () => {
   const { user } = useAuth();
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === 'artist'){
+    return <ArtistHome />;
+  } 
+  if(user.role !== 'artist'){
+    return <UserHome />
   }
-  
+    
   return <MusicList />;
 };
+
 
 function App() {
   console.log('App rendering');

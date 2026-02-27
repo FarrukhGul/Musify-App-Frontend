@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://musify-app-backend.onrender.com/api';
 // const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+
+const API_BASE_URL = import.meta.env.VITE_API_URL='https://musify-app-backend.onrender.com/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,7 +11,6 @@ const api = axios.create({
   timeout: 30000,
 });
 
-// ADD THIS - attaches token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -24,12 +25,10 @@ api.interceptors.response.use(
     if (error.code === 'ECONNABORTED') {
       return Promise.reject(new Error('Request timeout. Please try again.'));
     }
-    
     if (error.response?.status === 401) {
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
-    
     return Promise.reject(error);
   }
 );
@@ -41,66 +40,37 @@ export const authAPI = {
 };
 
 export const musicAPI = {
-  // User endpoints - accessible to both roles but with different behavior
   getAllMusic: async () => {
-    try {
-      const response = await api.get('/music/');
-      return response.data.musics || [];
-    } catch (error) {
-      if (error.response?.status === 403) {
-        return [];
-      }
-      throw error;
-    }
+    const response = await api.get('/music/');
+    return response.data.musics || [];
   },
-  
-  // Albums should be visible to everyone (both users and artists)
+
   getAlbums: async () => {
-    try {
-      const response = await api.get('/music/albums');
-      console.log('Albums API response:', response.data); // Debug log
-      return response.data.albums || [];
-    } catch (error) {
-      console.error('Error fetching albums:', error);
-      if (error.response?.status === 403) {
-        // If forbidden, return empty array
-        return [];
-      }
-      throw error;
-    }
+    const response = await api.get('/music/albums');
+    return response.data.albums || [];
   },
-  
+
   getAlbum: async (id) => {
-    try {
-      const response = await api.get(`/music/albums/${id}`);
-      return response.data.album;
-    } catch (error) {
-      console.error('Error fetching album:', error);
-      throw error;
-    }
+    const response = await api.get(`/music/albums/${id}`);
+    return response.data.album;
   },
-  
-  // Artist endpoints
-  uploadMusic: (formData) => {
-    return api.post('/music/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 60000,
-    });
-  },
-  
+
+  uploadMusic: (formData) => api.post('/music/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 60000,
+  }),
+
   createAlbum: (albumData) => api.post('/music/album', albumData),
-  
-  // Get artist's own music
+
+  searchMusic: async (query) => {
+    const res = await api.get(`/music/search?q=${encodeURIComponent(query)}`);
+    return res.data.musics || [];
+  },
+
   getMyMusic: async () => {
-    try {
-      const response = await api.get('/music/my-music');
-      console.log('My music API response:', response.data); // Debug log
-      return response.data.musics || [];
-    } catch (error) {
-      console.error('Error fetching your music:', error);
-      return [];
-    }
-  }
+    const response = await api.get('/music/my-music');
+    return response.data.musics || [];
+  },
 };
 
 export default api;

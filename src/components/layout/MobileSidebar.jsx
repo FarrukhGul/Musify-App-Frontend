@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FiHome, FiMusic, FiDisc, FiUpload, FiPlusCircle, FiLogOut, FiLogIn, FiX } from 'react-icons/fi';
 
@@ -25,7 +25,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-3" onClick={onClose}>
+            <NavLink to="/" className="flex items-center space-x-3" onClick={onClose}>
               <div>
                 <span className="text-xl font-bold">
                   <span className="text-white">Musi</span>
@@ -33,7 +33,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                 </span>
                 <p className="text-xs text-gray-400">Listen to music</p>
               </div>
-            </Link>
+            </NavLink>
             <button
               onClick={onClose}
               className="flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-all duration-300"
@@ -67,22 +67,22 @@ const MobileSidebar = ({ isOpen, onClose }) => {
             {user ? (
               <>
                 <li>
-                  <Link to="/" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
+                  <NavLink to="/" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
                     <FiHome size={18} className="group-hover:text-spotify-green transition-colors" />
                     <span className="font-medium text-sm">Home</span>
-                  </Link>
+                  </NavLink>
                 </li>
                 <li>
-                  <Link to="/music" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
+                  <NavLink to="/music" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
                     <FiMusic size={18} className="group-hover:text-spotify-green transition-colors" />
                     <span className="font-medium text-sm">Music</span>
-                  </Link>
+                  </NavLink>
                 </li>
                 <li>
-                  <Link to="/albums" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
+                  <NavLink to="/albums" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
                     <FiDisc size={18} className="group-hover:text-spotify-green transition-colors" />
                     <span className="font-medium text-sm">Albums</span>
-                  </Link>
+                  </NavLink>
                 </li>
                 {user.role === 'artist' && (
                   <>
@@ -90,16 +90,16 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                       <p className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-widest">Artist</p>
                     </li>
                     <li>
-                      <Link to="/upload" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
+                      <NavLink to="/upload" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
                         <FiUpload size={18} className="group-hover:text-spotify-green transition-colors" />
                         <span className="font-medium text-sm">Upload Music</span>
-                      </Link>
+                      </NavLink>
                     </li>
                     <li>
-                      <Link to="/create-album" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
+                      <NavLink to="/create-album" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
                         <FiPlusCircle size={18} className="group-hover:text-spotify-green transition-colors" />
                         <span className="font-medium text-sm">Create Album</span>
-                      </Link>
+                      </NavLink>
                     </li>
                   </>
                 )}
@@ -112,10 +112,10 @@ const MobileSidebar = ({ isOpen, onClose }) => {
               </>
             ) : (
               <li>
-                <Link to="/login" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-spotify-green hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
+                <NavLink to="/login" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-spotify-green hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
                   <FiLogIn size={18} />
                   <span className="font-medium text-sm">Login</span>
-                </Link>
+                </NavLink>
               </li>
             )}
           </ul>
@@ -126,7 +126,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
           <p className="text-xs text-gray-500">
             created by <span className="text-spotify-green font-semibold">Farrukh Gul</span>
           </p>
-          <p className="text-xs text-gray-600 mt-1">© 2024 Musify</p>
+          <p className="text-xs text-gray-600 mt-1">© 2026 Musify</p>
         </div>
       </div>
     </>

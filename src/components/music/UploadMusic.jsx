@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { musicAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import { FiUpload, FiMusic, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiUpload, FiMusic, FiCheckCircle, FiAlertCircle, FiTag } from 'react-icons/fi';
 
 const UploadMusic = () => {
-  const [formData, setFormData] = useState({ title: '', file: null });
+  const [formData, setFormData] = useState({ title: '', tags: '', file: null });
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -14,13 +14,11 @@ const UploadMusic = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Smooth animation for progress bar
   useEffect(() => {
     const timer = setTimeout(() => setAnimatedProgress(uploadProgress), 50);
     return () => clearTimeout(timer);
   }, [uploadProgress]);
 
-  // Fake progress animation while uploading (since ImageKit doesn't report real progress)
   useEffect(() => {
     let interval;
     if (uploading) {
@@ -67,13 +65,14 @@ const UploadMusic = () => {
 
     const data = new FormData();
     data.append('title', formData.title);
+    data.append('tags', formData.tags);
     data.append('music', formData.file);
 
     try {
       await musicAPI.uploadMusic(data);
       setUploadProgress(100);
       setSuccess('Track uploaded successfully!');
-      setFormData({ title: '', file: null });
+      setFormData({ title: '', tags: '', file: null });
       e.target.reset();
       setTimeout(() => navigate('/'), 2000);
     } catch (err) {
@@ -94,7 +93,6 @@ const UploadMusic = () => {
       <h1 className="text-3xl font-bold mb-2">Upload Music</h1>
       <p className="text-gray-400 mb-8 text-sm">Share your tracks with the world</p>
 
-      {/* Artist Badge */}
       {user && (
         <div className="mb-6 p-3 bg-white/5 border border-white/10 rounded-xl text-sm flex items-center space-x-2">
           <div className="w-7 h-7 bg-spotify-green/20 rounded-full flex items-center justify-center text-spotify-green font-bold text-xs">
@@ -106,7 +104,6 @@ const UploadMusic = () => {
 
       <form onSubmit={handleSubmit} className="space-y-5">
 
-        {/* Error */}
         {error && (
           <div className="flex items-start space-x-3 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl">
             <FiAlertCircle size={18} className="mt-0.5 flex-shrink-0" />
@@ -114,7 +111,6 @@ const UploadMusic = () => {
           </div>
         )}
 
-        {/* Success */}
         {success && (
           <div className="flex items-center space-x-3 bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-xl">
             <FiCheckCircle size={18} className="flex-shrink-0" />
@@ -136,6 +132,25 @@ const UploadMusic = () => {
           />
         </div>
 
+        {/* Tags */}
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center space-x-2">
+            <FiTag size={14} />
+            <span>Search Tags <span className="text-gray-500 font-normal">(optional)</span></span>
+          </label>
+          <input
+            type="text"
+            value={formData.tags}
+            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+            disabled={uploading}
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-transparent disabled:opacity-50 transition"
+            placeholder="e.g: allah, nadir, arabic, sad, 2021"
+          />
+          <p className="text-xs text-gray-500 mt-1.5">
+            💡 Arabic song hai? English keywords add karo taake users search kar sakein
+          </p>
+        </div>
+
         {/* File Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">Audio File</label>
@@ -155,7 +170,7 @@ const UploadMusic = () => {
                   </div>
                   <div className="text-center">
                     <p className="text-white font-medium text-sm truncate max-w-[250px]">{formData.file.name}</p>
-                    <p className="text-gray-400 text-xs mt-1">{(formData.file.size / (1024*1024)).toFixed(2)} MB</p>
+                    <p className="text-gray-400 text-xs mt-1">{(formData.file.size / (1024 * 1024)).toFixed(2)} MB</p>
                   </div>
                   <p className="text-spotify-green text-xs">✓ File selected — click to change</p>
                 </>
@@ -171,14 +186,7 @@ const UploadMusic = () => {
                 </>
               )}
             </div>
-            <input
-              id="file"
-              type="file"
-              accept="audio/*"
-              className="sr-only"
-              onChange={handleFileChange}
-              disabled={uploading}
-            />
+            <input id="file" type="file" accept="audio/*" className="sr-only" onChange={handleFileChange} disabled={uploading} />
           </label>
         </div>
 
@@ -197,14 +205,13 @@ const UploadMusic = () => {
                 className="h-2 rounded-full bg-gradient-to-r from-spotify-green to-emerald-400 transition-all duration-500 ease-out relative"
                 style={{ width: `${animatedProgress}%` }}
               >
-                {/* Shimmer effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse rounded-full"></div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Submit Button */}
+        {/* Submit */}
         <button
           type="submit"
           disabled={uploading || !formData.file || !formData.title.trim()}
@@ -233,7 +240,7 @@ const UploadMusic = () => {
             <li className="flex items-center space-x-2"><span className="text-spotify-green">•</span><span>MP3, WAV, or M4A format only</span></li>
             <li className="flex items-center space-x-2"><span className="text-spotify-green">•</span><span>Maximum file size is 50MB</span></li>
             <li className="flex items-center space-x-2"><span className="text-spotify-green">•</span><span>Use high-quality audio for best results</span></li>
-            <li className="flex items-center space-x-2"><span className="text-spotify-green">•</span><span>Add a descriptive title for your track</span></li>
+            <li className="flex items-center space-x-2"><span className="text-spotify-green">•</span><span>Arabic songs ke liye English tags zaroor add karo</span></li>
           </ul>
         </div>
       </form>
