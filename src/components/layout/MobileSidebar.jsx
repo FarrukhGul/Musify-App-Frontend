@@ -138,7 +138,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
         {/* Footer */}
         <div className="p-6 text-center border-t border-white/10">
           <p className="text-xs text-gray-500">created by <span className="text-spotify-green font-semibold">Farrukh Gul</span></p>
-          <p className="text-xs text-gray-600 mt-1">© 2024 Musify</p>
+          <p className="text-xs text-gray-600 mt-1">© 2026 Musify</p>
         </div>
       </div>
 

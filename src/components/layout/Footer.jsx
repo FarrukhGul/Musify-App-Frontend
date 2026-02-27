@@ -112,7 +112,7 @@ const Footer = () => {
                 {/* Bottom Bar */}
                 <div className="mt-10 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <p className="text-gray-600 text-xs">
-                        © 2024 Musify. All rights reserved.
+                        © 2026 Musify. All rights reserved.
                     </p>
                     <p className="text-gray-600 text-xs flex items-center space-x-1">
                         <span>Made with</span>
