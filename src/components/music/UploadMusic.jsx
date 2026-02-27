@@ -93,7 +93,7 @@ const UploadMusic = () => {
   return (
     <div className="max-w-2xl mx-auto px-4">
       <BackButton />
-      <h1 className="text-3xl font-bold mb-2">Upload Music</h1>
+      <h1 className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold mb-2">Upload Music</h1>
       <p className="text-gray-400 mb-8 text-sm">Share your tracks with the world</p>
 
       {user && (

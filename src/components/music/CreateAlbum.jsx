@@ -94,7 +94,7 @@ const CreateAlbum = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6">
       <BackButton />
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">
+      <h1 className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8">
         Create New Album
       </h1>
 
