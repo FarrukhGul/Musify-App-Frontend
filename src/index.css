@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-spotify-black: #121212;
+  --color-spotify-black: #0f0f1a;  /* ← change */
   --color-spotify-dark: #181818;
   --color-spotify-light: #282828;
   --color-spotify-green: #1DB954;
@@ -41,7 +41,7 @@
 }
 
 body {
-  background-color: var(--color-spotify-black);
+  background-color: #0f0f1a;
   color: white;
 }
 
