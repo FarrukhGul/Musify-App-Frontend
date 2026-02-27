@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { musicAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { FiUpload, FiMusic, FiCheckCircle, FiAlertCircle, FiTag } from 'react-icons/fi';
+import { FcIdea } from "react-icons/fc";
 
 const UploadMusic = () => {
   const [formData, setFormData] = useState({ title: '', tags: '', file: null });
@@ -147,7 +148,7 @@ const UploadMusic = () => {
             placeholder="e.g: allah, nadir, arabic, sad, 2021"
           />
           <p className="text-xs text-gray-500 mt-1.5">
-            💡 Arabic song hai? English keywords add karo taake users search kar sakein
+          <FcIdea className="inline mr-1 text-green-500" size={12} />  Is it an Arabic song? Add English keywords so users can find it easily in search...
           </p>
         </div>
 
