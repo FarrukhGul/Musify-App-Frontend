@@ -56,8 +56,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+
+  const updateUser = (updatedUser) => {
+  setUser(updatedUser);
+  localStorage.setItem('user', JSON.stringify(updatedUser));
+};
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    // Context mein pass karo:
+<AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
       {children}
 
       {loggingOut && (

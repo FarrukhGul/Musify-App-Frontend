@@ -11,6 +11,19 @@ const api = axios.create({
   timeout: 30000,
 });
 
+
+export const userAPI = {
+  getProfile: async () => {
+    const res = await api.get('/auth/profile');
+    return res.data.user;
+  },
+  updateProfile: async (data) => {
+    const res = await api.put('/auth/profile', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data.user;
+  },
+};
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {

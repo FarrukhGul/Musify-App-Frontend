@@ -1,11 +1,13 @@
-import React from 'react';
-import { Link, useNavigate, NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { FiHome, FiMusic, FiDisc, FiUpload, FiPlusCircle, FiLogOut, FiLogIn, FiX } from 'react-icons/fi';
+import { FiHome, FiMusic, FiDisc, FiUpload, FiPlusCircle, FiLogOut, FiLogIn, FiX, FiEdit2 } from 'react-icons/fi';
+import EditProfile from '../auth/EditProfile';
 
 const MobileSidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -34,10 +36,8 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                 <p className="text-xs text-gray-400">Listen to music</p>
               </div>
             </NavLink>
-            <button
-              onClick={onClose}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-all duration-300"
-            >
+            <button onClick={onClose}
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-all duration-300">
               <FiX size={18} />
             </button>
           </div>
@@ -47,17 +47,31 @@ const MobileSidebar = ({ isOpen, onClose }) => {
         {user && (
           <div className="p-5 border-b border-white/10 bg-white/5">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-spotify-green to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-spotify-green/30">
-                {user.email?.charAt(0).toUpperCase()}
-              </div>
-              <div>
+              {user.profilePic ? (
+                <img src={user.profilePic} alt="Profile"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-spotify-green shadow-lg" />
+              ) : (
+                <div className="w-12 h-12 bg-gradient-to-br from-spotify-green to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-spotify-green/30">
+                  {user.email?.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-400">Logged in as</p>
-                <p className="font-medium text-white truncate max-w-[160px] text-sm">{user.email}</p>
+                <p className="font-medium text-white truncate text-sm">{user.email}</p>
                 <span className="inline-block mt-1 px-2 py-0.5 bg-spotify-green/20 text-spotify-green text-xs rounded-full border border-spotify-green/30">
                   {user.role}
                 </span>
               </div>
             </div>
+
+            {/* Edit Profile Button */}
+            <button
+              onClick={() => { setShowEditProfile(true); onClose(); }}
+              className="w-full mt-4 flex items-center justify-center space-x-2 py-2.5 bg-white/5 border border-white/10 hover:bg-spotify-green/10 hover:border-spotify-green/30 text-gray-400 hover:text-spotify-green rounded-xl transition-all duration-300 text-sm font-medium"
+            >
+              <FiEdit2 size={15} />
+              <span>Edit Profile</span>
+            </button>
           </div>
         )}
 
@@ -67,21 +81,21 @@ const MobileSidebar = ({ isOpen, onClose }) => {
             {user ? (
               <>
                 <li>
-                  <NavLink to="/" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
-                    <FiHome size={18} className="group-hover:text-spotify-green transition-colors" />
-                    <span className="font-medium text-sm">Home</span>
+                  <NavLink to="/" end onClick={onClose} className={({ isActive }) =>
+                    `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-spotify-green/10 text-spotify-green border border-spotify-green/20' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                    <FiHome size={18} /><span className="font-medium text-sm">Home</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/music" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
-                    <FiMusic size={18} className="group-hover:text-spotify-green transition-colors" />
-                    <span className="font-medium text-sm">Music</span>
+                  <NavLink to="/music" onClick={onClose} className={({ isActive }) =>
+                    `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-spotify-green/10 text-spotify-green border border-spotify-green/20' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                    <FiMusic size={18} /><span className="font-medium text-sm">Music</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/albums" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
-                    <FiDisc size={18} className="group-hover:text-spotify-green transition-colors" />
-                    <span className="font-medium text-sm">Albums</span>
+                  <NavLink to="/albums" onClick={onClose} className={({ isActive }) =>
+                    `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-spotify-green/10 text-spotify-green border border-spotify-green/20' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                    <FiDisc size={18} /><span className="font-medium text-sm">Albums</span>
                   </NavLink>
                 </li>
                 {user.role === 'artist' && (
@@ -90,31 +104,31 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                       <p className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-widest">Artist</p>
                     </li>
                     <li>
-                      <NavLink to="/upload" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
-                        <FiUpload size={18} className="group-hover:text-spotify-green transition-colors" />
-                        <span className="font-medium text-sm">Upload Music</span>
+                      <NavLink to="/upload" onClick={onClose} className={({ isActive }) =>
+                        `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-spotify-green/10 text-spotify-green border border-spotify-green/20' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                        <FiUpload size={18} /><span className="font-medium text-sm">Upload Music</span>
                       </NavLink>
                     </li>
                     <li>
-                      <NavLink to="/create-album" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
-                        <FiPlusCircle size={18} className="group-hover:text-spotify-green transition-colors" />
-                        <span className="font-medium text-sm">Create Album</span>
+                      <NavLink to="/create-album" onClick={onClose} className={({ isActive }) =>
+                        `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-spotify-green/10 text-spotify-green border border-spotify-green/20' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                        <FiPlusCircle size={18} /><span className="font-medium text-sm">Create Album</span>
                       </NavLink>
                     </li>
                   </>
                 )}
                 <li className="pt-4">
-                  <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 group">
-                    <FiLogOut size={18} />
-                    <span className="font-medium text-sm">Logout</span>
+                  <button onClick={handleLogout}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200">
+                    <FiLogOut size={18} /><span className="font-medium text-sm">Logout</span>
                   </button>
                 </li>
               </>
             ) : (
               <li>
-                <NavLink to="/login" onClick={onClose} className="flex items-center space-x-3 px-4 py-3 text-spotify-green hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
-                  <FiLogIn size={18} />
-                  <span className="font-medium text-sm">Login</span>
+                <NavLink to="/login" onClick={onClose} className={({ isActive }) =>
+                  `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-spotify-green/10 text-spotify-green' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                  <FiLogIn size={18} /><span className="font-medium text-sm">Login</span>
                 </NavLink>
               </li>
             )}
@@ -123,12 +137,13 @@ const MobileSidebar = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         <div className="p-6 text-center border-t border-white/10">
-          <p className="text-xs text-gray-500">
-            created by <span className="text-spotify-green font-semibold">Farrukh Gul</span>
-          </p>
-          <p className="text-xs text-gray-600 mt-1">© 2026 Musify</p>
+          <p className="text-xs text-gray-500">created by <span className="text-spotify-green font-semibold">Farrukh Gul</span></p>
+          <p className="text-xs text-gray-600 mt-1">© 2024 Musify</p>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && <EditProfile onClose={() => setShowEditProfile(false)} />}
     </>
   );
 };
