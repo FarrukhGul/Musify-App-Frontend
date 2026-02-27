@@ -18,7 +18,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-spotify-dark border-b border-spotify-light sticky top-0 z-30">
+      <nav className="bg-[#0f0f1a] border-b border-white/5 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
