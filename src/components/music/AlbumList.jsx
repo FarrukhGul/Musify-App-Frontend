@@ -114,12 +114,12 @@ const AlbumList = () => {
       <h1 className="text-3xl font-bold mb-8">
         {user?.role === 'artist' ? 'My Albums' : 'Albums'}
       </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
         {albums.map((album) => (
           <Link
             key={album._id}
             to={`/albums/${album._id}`}
-            className="bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all duration-300 group"
+           className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 transition-all duration-300 group"
           >
             {album.coverImage ? (
               <img 
