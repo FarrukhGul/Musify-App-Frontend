@@ -14,10 +14,7 @@ const ArtistHome = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      console.log('👤 User object:', user); // Debug log
-      fetchData();
-    }
+    if (user) fetchData();
   }, [user]);
 
   const fetchData = async () => {
@@ -26,42 +23,17 @@ const ArtistHome = () => {
         musicAPI.getMyMusic(),
         musicAPI.getAlbums()
       ]);
-      
       setMyMusic(Array.isArray(music) ? music : []);
-      
-      // ✅ FIXED: Get user ID properly (could be _id or id)
       const allAlbums = Array.isArray(albums) ? albums : [];
-      console.log('📀 All albums:', allAlbums);
-      
-      // Try both _id and id
       const currentUserId = user?._id || user?.id;
-      console.log('🆔 Current user ID:', currentUserId);
-      
-      if (!currentUserId) {
-        console.error('❌ No user ID found!');
-        setMyAlbums([]);
-        return;
-      }
-      
+      if (!currentUserId) { setMyAlbums([]); return; }
       const myAlbumsFiltered = allAlbums.filter(album => {
-        // Get artist ID properly (could be nested or direct)
         let albumArtistId;
-        if (typeof album.artist === 'object') {
-          albumArtistId = album.artist?._id || album.artist?.id;
-        } else {
-          albumArtistId = album.artist;
-        }
-        
-        // Convert to string for comparison
-        const match = albumArtistId?.toString() === currentUserId?.toString();
-        console.log(`🎵 Album "${album.title}" - Artist: ${albumArtistId}, Match: ${match}`);
-        
-        return match;
+        if (typeof album.artist === 'object') albumArtistId = album.artist?._id || album.artist?.id;
+        else albumArtistId = album.artist;
+        return albumArtistId?.toString() === currentUserId?.toString();
       });
-      
-      console.log('✅ Filtered albums:', myAlbumsFiltered);
       setMyAlbums(myAlbumsFiltered);
-      
     } catch (err) {
       console.error('❌ Fetch error:', err);
     } finally {
@@ -80,6 +52,20 @@ const ArtistHome = () => {
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-spotify-green/20 to-emerald-600/10 border border-spotify-green/20 rounded-2xl p-6">
         <div className="flex items-center space-x-4">
+          {/* ✅ Profile Pic */}
+          {user?.profilePic ? (
+            <img
+              src={user.profilePic}
+              alt="Profile"
+              className="w-14 h-14 rounded-full object-cover border-2 border-spotify-green shadow-lg flex-shrink-0"
+            />
+          ) : (
+            <div className="w-14 h-14 bg-spotify-green/20 rounded-full flex items-center justify-center border-2 border-spotify-green/40 flex-shrink-0">
+              <span className="text-xl font-bold text-spotify-green">
+                {user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
           <div className="text-white">
             <p className="text-gray-400 text-sm">Welcome back,</p>
             <h1 className="text-2xl font-bold text-white">{user?.username || user?.email}</h1>
@@ -89,7 +75,6 @@ const ArtistHome = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-4 mt-6">
           <div className="bg-white/5 rounded-xl p-4 text-center">
             <p className="text-3xl font-bold text-spotify-green">{myMusic.length}</p>
@@ -128,7 +113,6 @@ const ArtistHome = () => {
           </h2>
           <Link to="/music" className="text-sm text-spotify-green hover:text-emerald-400 transition">View all →</Link>
         </div>
-
         {myMusic.length === 0 ? (
           <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
             <FiMusic size={32} className="text-gray-500 mx-auto mb-3" />
@@ -140,7 +124,6 @@ const ArtistHome = () => {
             {myMusic.slice(0, 4).map((track) => (
               <div key={track._id}
                 className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 transition-all duration-300 group cursor-pointer"
-
                 onClick={() => playTrack(track, myMusic)}
               >
                 <div className="relative">
@@ -171,7 +154,6 @@ const ArtistHome = () => {
           </h2>
           <Link to="/albums" className="text-sm text-spotify-green hover:text-emerald-400 transition">View all →</Link>
         </div>
-
         {myAlbums.length === 0 ? (
           <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
             <FiDisc size={32} className="text-gray-500 mx-auto mb-3" />
@@ -184,7 +166,11 @@ const ArtistHome = () => {
               <Link key={album._id} to={`/albums/${album._id}`}
                 className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 transition-all duration-300 group"
               >
-                <GradientCover title={album.title} />
+                {album.coverImage ? (
+                  <img src={album.coverImage} alt={album.title} className="w-full aspect-square object-cover rounded-xl mb-3"/>
+                ) : (
+                  <GradientCover title={album.title} />
+                )}
                 <h3 className="font-semibold truncate text-white text-sm mt-1">{album.title}</h3>
                 <p className="text-xs text-gray-400 mt-0.5">{album.musics?.length || 0} tracks</p>
               </Link>

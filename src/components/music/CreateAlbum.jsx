@@ -4,7 +4,7 @@ import { musicAPI } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { getGradient } from "../../utils/gradients.jsx";
 import BackButton from '../layout/BackButton';
-
+import { FiUpload, } from 'react-icons/fi';
 
 const MUSIC_PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 24 24' fill='%23282828'%3E%3Cpath d='M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z'/%3E%3C/svg%3E";
@@ -13,6 +13,7 @@ const CreateAlbum = () => {
   const [formData, setFormData] = useState({
     title: "",
     musics: [],
+    coverImage: null
   });
   const [availableTracks, setAvailableTracks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,24 +61,28 @@ const CreateAlbum = () => {
       setFormData({ ...formData, musics: filteredTracks.map((t) => t._id) });
     }
   };
-
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setError('');
     setSubmitting(true);
 
     try {
-      await musicAPI.createAlbum(formData);
-      setSuccess("Album created successfully!");
-      setTimeout(() => navigate("/albums"), 2000);
+        const data = new FormData();     
+        data.append('title', formData.title);
+        data.append('musics', JSON.stringify(formData.musics));
+        if (formData.coverImage) {
+            data.append('coverImage', formData.coverImage);
+        }
+
+        await musicAPI.createAlbum(data);  // FormData send
+        setSuccess("Album created successfully!");
+        setTimeout(() => navigate("/albums"), 2000);
     } catch (err) {
-      console.error("Create album error:", err);
-      setError(err.response?.data?.message || "Failed to create album");
+        setError(err.response?.data?.message || "Failed to create album");
     } finally {
-      setSubmitting(false);
+        setSubmitting(false);
     }
-  };
+};
 
   const filteredTracks = availableTracks.filter((track) =>
     track.title?.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -131,6 +136,44 @@ const CreateAlbum = () => {
           />
         </div>
 
+        {/* Cover Image Upload */}
+        <div className="bg-spotify-dark rounded-lg p-4 sm:p-6">
+          <label className="block text-sm font-medium text-spotify-gray mb-2">
+            Album Cover Image <span className="text-gray-500">(optional)</span>
+          </label>
+
+          <label htmlFor="coverImage" className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${formData.coverImage ? 'border-spotify-green/50 bg-spotify-green/5' : 'border-white/10 bg-white/5 hover:border-spotify-green/30'
+            }`}>
+            {formData.coverImage ? (
+              <div className="flex flex-col items-center space-y-2">
+                <img
+                  src={URL.createObjectURL(formData.coverImage)}
+                  alt="Cover preview"
+                  className="w-20 h-20 object-cover rounded-xl"
+                />
+                <p className="text-spotify-green text-xs">✓ Click to change</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center space-y-3">
+                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
+                  <FiUpload size={22} className="text-gray-400" />
+                </div>
+                <p className="text-white text-sm">Click to upload cover image</p>
+                <p className="text-gray-500 text-xs">JPG, PNG — max 5MB</p>
+              </div>
+            )}
+            <input
+              id="coverImage"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) setFormData({ ...formData, coverImage: file });
+              }}
+            />
+          </label>
+        </div>
         <div className="bg-spotify-dark rounded-lg p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
             <h2 className="text-lg sm:text-xl font-semibold">Select Tracks</h2>
@@ -204,18 +247,16 @@ const CreateAlbum = () => {
                     />
                     <label
                       htmlFor={`track-${track._id}`}
-                      className={`flex items-center p-3 rounded-lg cursor-pointer transition ${
-                        formData.musics.includes(track._id)
+                      className={`flex items-center p-3 rounded-lg cursor-pointer transition ${formData.musics.includes(track._id)
                           ? "bg-spotify-green/20 border border-spotify-green"
                           : "bg-spotify-light hover:bg-spotify-light/80"
-                      }`}
+                        }`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mr-3 transition ${
-                          formData.musics.includes(track._id)
+                        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mr-3 transition ${formData.musics.includes(track._id)
                             ? "bg-spotify-green border-spotify-green"
                             : "border-spotify-gray bg-transparent"
-                        }`}
+                          }`}
                       >
                         {formData.musics.includes(track._id) && (
                           <svg
