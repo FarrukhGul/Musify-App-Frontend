@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { FiHome, FiMusic, FiDisc, FiUpload, FiPlusCircle, FiLogOut, FiLogIn, FiX, FiEdit2 } from 'react-icons/fi';
+import { FiHome, FiMusic, FiDisc, FiUpload, FiPlusCircle, FiHeart, FiLogOut, FiLogIn, FiX, FiEdit2 } from 'react-icons/fi';
 import EditProfile from '../auth/EditProfile';
 
 const MobileSidebar = ({ isOpen, onClose }) => {
@@ -98,6 +98,18 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                     <FiDisc size={18} /><span className="font-medium text-sm">Albums</span>
                   </NavLink>
                 </li>
+
+                {/* Sirf user role ke liye */}
+                {user.role === 'user' && (
+                  <li>
+                    <NavLink to="/liked" onClick={onClose} className={({ isActive }) =>
+                      `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-spotify-green/10 text-spotify-green border border-spotify-green/20' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                      <FiHeart size={18} /><span className="font-medium text-sm">Liked Songs</span>
+                    </NavLink>
+                  </li>
+                )}
+
+                {/* Sirf artist role ke liye */}
                 {user.role === 'artist' && (
                   <>
                     <li className="pt-3">
@@ -117,6 +129,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                     </li>
                   </>
                 )}
+
                 <li className="pt-4">
                   <button onClick={handleLogout}
                     className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200">

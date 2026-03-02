@@ -73,6 +73,21 @@ export const musicAPI = {
     timeout: 60000,
   }),
 
+
+
+  getLikedSongs: async () => {
+    const res = await api.get('/music/liked');
+    return res.data.musics || [];
+  },
+
+  likeMusic: async (id) => {
+    await api.post(`/music/${id}/like`);
+  },
+
+  unlikeMusic: async (id) => {
+    await api.delete(`/music/${id}/like`);
+  },
+
   createAlbum: (albumData) => api.post('/music/album', albumData),
 
   searchMusic: async (query) => {

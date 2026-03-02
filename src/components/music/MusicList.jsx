@@ -3,9 +3,36 @@ import { musicAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlayer } from '../../hooks/usePlayer';
 import { GradientCover } from '../../utils/gradients.jsx';
-import { FiPlay, FiPause, FiSearch, FiUpload, FiX } from 'react-icons/fi';
+import { FiPlay, FiSearch, FiUpload, FiX, FiHeart } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import BackButton from '../layout/BackButton';
+
+// ✅ Toast - top center se slide down
+const LikeToast = ({ song, visible }) => (
+  <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8 pointer-events-none'}`}>
+    <div className="flex items-center space-x-3 bg-black/70 border border-spotify-green/40 px-5 py-3 rounded-2xl shadow-2xl shadow-spotify-green/20 backdrop-blur-xl">
+      <div className="w-8 h-8 bg-spotify-green/20 rounded-full flex items-center justify-center animate-pulse">
+        <FiHeart size={16} className="text-spotify-green fill-spotify-green" />
+      </div>
+      <div>
+        <p className="text-white text-sm font-semibold truncate max-w-[180px]">{song}</p>
+        <p className="text-spotify-green text-xs">Added to Liked Songs ✓</p>
+      </div>
+    </div>
+  </div>
+);
+
+
+
+// ✅ Heart Flash - chota aur blurred bg
+const HeartFlash = ({ visible }) => (
+  <div className={`fixed inset-0 z-40 flex items-center justify-center pointer-events-none transition-all duration-300 ${visible ? 'opacity-100' : 'opacity-0'}`}>
+    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+    <div className={`relative transition-all duration-500 ${visible ? 'scale-100' : 'scale-50'}`}>
+      <FiHeart size={80} className="text-spotify-green fill-spotify-green drop-shadow-[0_0_30px_rgba(30,215,96,0.9)]" />
+    </div>
+  </div>
+);
 
 const MusicList = () => {
   const [music, setMusic] = useState([]);
@@ -15,37 +42,67 @@ const MusicList = () => {
   const [searchResults, setSearchResults] = useState(null);
   const [searching, setSearching] = useState(false);
   const { user } = useAuth();
-  const { playTrack, currentTrack, isPlaying } = usePlayer();
+  const { playTrack } = usePlayer();
+  const [likedSongs, setLikedSongs] = useState([]);
+  const [toast, setToast] = useState({ visible: false, song: '' });
+  const [heartFlash, setHeartFlash] = useState(false);
 
-  // Fetch initial music based on user role
+  useEffect(() => {
+    if (user) {
+      musicAPI.getLikedSongs().then(data => {
+        setLikedSongs(data.map(s => s._id));
+      }).catch(() => {});
+    }
+  }, [user]);
+
+  const toggleLike = async (e, track) => {
+    e.stopPropagation();
+    const isLiked = likedSongs.includes(track._id);
+    try {
+      if (isLiked) {
+        await musicAPI.unlikeMusic(track._id);
+        setLikedSongs(prev => prev.filter(id => id !== track._id));
+      } else {
+        await musicAPI.likeMusic(track._id);
+        setLikedSongs(prev => [...prev, track._id]);
+
+        // ✅ Heart flash
+        setHeartFlash(true);
+        setTimeout(() => setHeartFlash(false), 700);
+
+        // ✅ Toast
+        setToast({ visible: true, song: track.title });
+        setTimeout(() => setToast({ visible: false, song: '' }), 2500);
+      }
+    } catch (err) {
+      console.error('Like failed:', err);
+    }
+  };
+
   useEffect(() => {
     if (user?.role === 'user') fetchMusic();
     else if (user?.role === 'artist') fetchMyMusic();
     else setLoading(false);
   }, [user]);
 
-  // Debounced search with better error handling
   useEffect(() => {
     if (!searchTerm.trim()) { 
       setSearchResults(null); 
       return; 
     }
-    
     const timer = setTimeout(async () => {
       setSearching(true);
       try {
-        console.log('🔍 Searching for:', searchTerm);
         const results = await musicAPI.searchMusic(searchTerm);
-        console.log('✅ Search results:', results);
         setSearchResults(results);
       } catch (err) {
-        console.error('❌ Search error:', err);
+        console.log(err);
+        
         setSearchResults([]);
       } finally {
         setSearching(false);
       }
     }, 500);
-    
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
@@ -56,7 +113,6 @@ const MusicList = () => {
       setMusic(Array.isArray(data) ? data : []);
       setError('');
     } catch (err) {
-      console.error('Fetch music error:', err);
       setError(err.response?.status === 403 ? 'No permission' : 'Failed to load music');
     } finally {
       setLoading(false);
@@ -70,28 +126,22 @@ const MusicList = () => {
       setMusic(Array.isArray(data) ? data : []);
       setError('');
     } catch (err) {
-      console.error('Fetch my music error:', err);
+      console.log(err)
       setError('Failed to load your music');
     } finally {
       setLoading(false);
     }
   };
 
-  // Get display music based on search state
   const getDisplayMusic = () => {
-    if (searchTerm && searchResults !== null) {
-      return searchResults;
-    }
+    if (searchTerm && searchResults !== null) return searchResults;
     return music;
   };
 
-  //  Handle play with proper queue based on current view
   const handlePlayTrack = (track) => {
-    const currentDisplay = getDisplayMusic();
-    playTrack(track, currentDisplay);
+    playTrack(track, getDisplayMusic());
   };
 
-  //  Clear search
   const clearSearch = () => {
     setSearchTerm('');
     setSearchResults(null);
@@ -127,14 +177,17 @@ const MusicList = () => {
 
   return (
     <div className="space-y-6">
-        <BackButton />
+      {/* ✅ Toast + Flash */}
+      <LikeToast visible={toast.visible} song={toast.song} />
+      <HeartFlash visible={heartFlash} />
+
+      <BackButton />
+
       {/* Header + Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-       <h1 className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold ">
+        <h1 className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold">
           {user?.role === 'artist' ? 'My Tracks' : 'Your Musics'}
         </h1>
-        
-        {/* Search Bar with Clear Button */}
         <div className="relative w-full sm:w-80">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
             {searching ? (
@@ -146,7 +199,6 @@ const MusicList = () => {
               <FiSearch size={16} />
             )}
           </span>
-          
           <input
             type="text"
             value={searchTerm}
@@ -154,12 +206,8 @@ const MusicList = () => {
             placeholder="Search songs or artists..."
             className="w-full pl-10 pr-10 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-spotify-green transition text-sm"
           />
-          
           {searchTerm && (
-            <button
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
-            >
+            <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition">
               <FiX size={16} />
             </button>
           )}
@@ -172,12 +220,7 @@ const MusicList = () => {
           <p className="text-sm text-gray-400">
             Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "<span className="text-white">{searchTerm}</span>"
           </p>
-          <button
-            onClick={clearSearch}
-            className="text-xs text-spotify-green hover:underline"
-          >
-            Clear search
-          </button>
+          <button onClick={clearSearch} className="text-xs text-spotify-green hover:underline">Clear search</button>
         </div>
       )}
 
@@ -195,28 +238,33 @@ const MusicList = () => {
           {displayMusic.map((track) => (
             <div
               key={track._id || track.id}
-              className="className=bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 group cursor-pointer hover:shadow-xl hover:shadow-black/30"
+              className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 group cursor-pointer hover:shadow-xl hover:shadow-black/30"
               onClick={() => handlePlayTrack(track)}
             >
               <div className="relative">
                 {track.coverImage ? (
-                  <img 
-                    src={track.coverImage} 
-                    alt={track.title} 
-                    className="w-full aspect-square object-cover rounded-xl mb-4"
-                  />
+                  <img src={track.coverImage} alt={track.title} className="w-full aspect-square object-cover rounded-xl mb-4"/>
                 ) : (
                   <GradientCover title={track.title} />
                 )}
-                
+
+                {/* Heart button */}
+                <button
+                  onClick={(e) => toggleLike(e, track)}
+                  className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
+                >
+                  <FiHeart
+                    size={15}
+                    className={`transition-all duration-300 ${likedSongs.includes(track._id) ? 'text-spotify-green fill-spotify-green' : 'text-white'}`}
+                  />
+                </button>
+
+                {/* Play button */}
                 <button className="absolute bottom-6 right-2 w-11 h-11 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg shadow-spotify-green/40 hover:scale-110 hover:bg-emerald-400">
-                  {currentTrack?._id === track._id && isPlaying
-                    ? <FiPause size={18} className="text-black" />
-                    : <FiPlay size={18} className="text-black ml-0.5" />
-                  }
+                  <FiPlay size={18} className="text-black ml-0.5" />
                 </button>
               </div>
-              
+
               <h3 className="font-semibold truncate text-white">{track.title}</h3>
               <p className="text-sm text-gray-400 truncate mt-0.5">
                 {typeof track.artist === 'object'
