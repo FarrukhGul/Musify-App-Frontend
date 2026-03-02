@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiShield } from 'react-icons/fi';
@@ -13,6 +13,14 @@ const Register = () => {
   const navigate = useNavigate();
 
   const [barHeights] = useState(() => [...Array(20)].map(() => Math.random() * 30 + 10));
+
+  const videoRef = useRef(null);
+
+useEffect(() => {
+  if (videoRef.current) {
+    videoRef.current.play();
+  }
+}, []);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -30,10 +38,17 @@ const Register = () => {
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden">
       <div className="fixed inset-0 w-full h-full overflow-hidden">
-        <video autoPlay loop muted playsInline className="absolute w-full h-full object-cover"
-          style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', minWidth: '100%', minHeight: '100%' }}>
-          <source src="/videos/background.mp4" type="video/mp4" />
-        </video>
+        <video 
+  ref={videoRef}
+  autoPlay 
+  loop 
+  muted 
+  playsInline 
+  className="absolute w-full h-full object-cover"
+  style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', minWidth: '100%', minHeight: '100%' }}
+>
+  <source src="/videos/background.mp4" type="video/mp4" />
+</video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80"></div>
         <div className="absolute bottom-0 left-0 right-0 flex justify-center space-x-1 mb-4 opacity-30 z-10">
           {barHeights.map((height, i) => (
