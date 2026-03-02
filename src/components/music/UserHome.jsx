@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { musicAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlayer } from '../../hooks/usePlayer';
-import { FiMusic, FiDisc, FiPlay, FiPause, FiTrendingUp, FiClock, FiUsers, FiHeadphones } from 'react-icons/fi';
+import { FiMusic, FiDisc, FiPlay, FiPause, FiTrendingUp, FiClock, FiUsers, FiHeadphones, FiHeart } from 'react-icons/fi';
 
 const CoverPlaceholder = ({ title }) => {
   const colors = [
@@ -22,6 +22,31 @@ const CoverPlaceholder = ({ title }) => {
   );
 };
 
+// ✅ Toast
+const LikeToast = ({ song, visible }) => (
+  <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8 pointer-events-none'}`}>
+    <div className="flex items-center space-x-3 bg-black/70 border border-spotify-green/40 px-5 py-3 rounded-2xl shadow-2xl shadow-spotify-green/20 backdrop-blur-xl">
+      <div className="w-8 h-8 bg-spotify-green/20 rounded-full flex items-center justify-center animate-pulse">
+        <FiHeart size={16} className="text-spotify-green fill-spotify-green" />
+      </div>
+      <div>
+        <p className="text-white text-sm font-semibold truncate max-w-[180px]">{song}</p>
+        <p className="text-spotify-green text-xs">Added to Liked Songs ✓</p>
+      </div>
+    </div>
+  </div>
+);
+
+// ✅ Heart Flash
+const HeartFlash = ({ visible }) => (
+  <div className={`fixed inset-0 z-40 flex items-center justify-center pointer-events-none transition-all duration-300 ${visible ? 'opacity-100' : 'opacity-0'}`}>
+    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+    <div className={`relative transition-all duration-500 ${visible ? 'scale-100' : 'scale-50'}`}>
+      <FiHeart size={80} className="text-spotify-green fill-spotify-green drop-shadow-[0_0_30px_rgba(30,215,96,0.9)]" />
+    </div>
+  </div>
+);
+
 const UserHome = () => {
   const { user } = useAuth();
   const { playTrack, currentTrack, isPlaying } = usePlayer();
@@ -30,6 +55,9 @@ const UserHome = () => {
   const [loading, setLoading] = useState(true);
   const [recentlyPlayed, setRecentlyPlayed] = useState([]);
   const [stats, setStats] = useState({ totalTracks: 0, totalAlbums: 0, totalArtists: 0 });
+  const [likedSongs, setLikedSongs] = useState([]);
+  const [toast, setToast] = useState({ visible: false, song: '' });
+  const [heartFlash, setHeartFlash] = useState(false);
 
   useEffect(() => {
     fetchUserData();
@@ -39,6 +67,34 @@ const UserHome = () => {
   useEffect(() => {
     if (currentTrack) addToRecentlyPlayed(currentTrack);
   }, [currentTrack]);
+
+  useEffect(() => {
+    if (user) {
+      musicAPI.getLikedSongs().then(data => {
+        setLikedSongs(data.map(s => s._id));
+      }).catch(() => {});
+    }
+  }, [user]);
+
+  const toggleLike = async (e, track) => {
+    e.stopPropagation();
+    const isLiked = likedSongs.includes(track._id);
+    try {
+      if (isLiked) {
+        await musicAPI.unlikeMusic(track._id);
+        setLikedSongs(prev => prev.filter(id => id !== track._id));
+      } else {
+        await musicAPI.likeMusic(track._id);
+        setLikedSongs(prev => [...prev, track._id]);
+        setHeartFlash(true);
+        setTimeout(() => setHeartFlash(false), 700);
+        setToast({ visible: true, song: track.title });
+        setTimeout(() => setToast({ visible: false, song: '' }), 2500);
+      }
+    } catch (err) {
+      console.error('Like failed:', err);
+    }
+  };
 
   const fetchUserData = async () => {
     try {
@@ -91,16 +147,16 @@ const UserHome = () => {
   return (
     <div className="space-y-8 pb-20 px-4 sm:px-0">
 
+      {/* Toast + Flash */}
+      <LikeToast visible={toast.visible} song={toast.song} />
+      <HeartFlash visible={heartFlash} />
+
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-spotify-green/20 to-blue-600/10 border border-spotify-green/20 rounded-2xl p-4 sm:p-6">
         <div className="flex items-center space-x-4">
-          {/* ✅ Profile Pic */}
           {user?.profilePic ? (
-            <img
-              src={user.profilePic}
-              alt="Profile"
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-spotify-green shadow-lg flex-shrink-0"
-            />
+            <img src={user.profilePic} alt="Profile"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-spotify-green shadow-lg flex-shrink-0" />
           ) : (
             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-spotify-green to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-lg flex-shrink-0">
               {user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
@@ -163,6 +219,19 @@ const UserHome = () => {
                   ) : (
                     <CoverPlaceholder title={track.title} />
                   )}
+
+                  {/* ✅ Heart button */}
+                  <button
+                    onClick={(e) => toggleLike(e, track)}
+                    className="absolute top-1 right-1 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
+                  >
+                    <FiHeart
+                      size={12}
+                      className={`transition-all duration-300 ${likedSongs.includes(track._id) ? 'text-spotify-green fill-spotify-green' : 'text-white'}`}
+                    />
+                  </button>
+
+                  {/* Play button */}
                   <button className="absolute bottom-2 right-2 w-6 h-6 sm:w-8 sm:h-8 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg shadow-spotify-green/40 hover:scale-110">
                     {currentTrack?._id === track._id && isPlaying
                       ? <FiPause size={12} className="text-black" />
