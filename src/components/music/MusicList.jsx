@@ -120,11 +120,10 @@ const MusicList = () => {
 
   const handleDownload = async (e, track) => {
     e.stopPropagation();
-    if (downloading.id) return; // already downloading
+    if (downloading.id) return;
     try {
       setDownloading({ id: track._id, progress: 10 });
 
-      // Fake smooth progress
       const interval = setInterval(() => {
         setDownloading(prev => ({
           ...prev,
@@ -137,12 +136,15 @@ const MusicList = () => {
       clearInterval(interval);
       setDownloading({ id: track._id, progress: 100 });
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blob = new Blob([response.data], { type: 'audio/mpeg' });
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `${track.title}.mp3`;
+      document.body.appendChild(a); // Android ke liye zaroori
       a.click();
-      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 
       setTimeout(() => setDownloading({ id: null, progress: 0 }), 1500);
     } catch (err) {

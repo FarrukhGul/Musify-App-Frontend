@@ -143,11 +143,10 @@ const UserHome = () => {
 
   const handleDownload = async (e, track) => {
     e.stopPropagation();
-    if (downloading.id) return; // already downloading
+    if (downloading.id) return;
     try {
       setDownloading({ id: track._id, progress: 10 });
 
-      // Fake smooth progress
       const interval = setInterval(() => {
         setDownloading(prev => ({
           ...prev,
@@ -160,12 +159,15 @@ const UserHome = () => {
       clearInterval(interval);
       setDownloading({ id: track._id, progress: 100 });
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blob = new Blob([response.data], { type: 'audio/mpeg' });
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `${track.title}.mp3`;
+      document.body.appendChild(a); // Android ke liye zaroori
       a.click();
-      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 
       setTimeout(() => setDownloading({ id: null, progress: 0 }), 1500);
     } catch (err) {
@@ -217,7 +219,7 @@ const UserHome = () => {
   const handlePlayTrack = (track, trackList) => playTrack(track, trackList);
 
   if (loading) return (
-    <div className="flex justify-center items-center min-h-100">
+    <div className="flex justify-center items-center min-h-[400px]">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-spotify-green"></div>
     </div>
   );
@@ -303,7 +305,7 @@ const UserHome = () => {
                     <CoverPlaceholder title={track.title} />
                   )}
 
-                  {/*  Heart button */}
+                  {/* ✅ Heart button */}
                   <button
                     onClick={(e) => toggleLike(e, track)}
                     className="absolute top-1 right-1 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
@@ -317,7 +319,7 @@ const UserHome = () => {
                   {/* Download Button */}
                   <button
                     onClick={(e) => handleDownload(e, track)}
-                    className="absolute top-1 left-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10 hover:bg-white/20"
+                    className="absolute top-2 left-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10 hover:bg-white/20"
                   >
                     {downloading.id === track._id ? (
                       <svg className="animate-spin h-3.5 w-3.5 text-spotify-green" fill="none" viewBox="0 0 24 24">
