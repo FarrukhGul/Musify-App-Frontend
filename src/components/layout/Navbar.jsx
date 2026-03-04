@@ -56,7 +56,6 @@ const Navbar = () => {
                     Albums
                   </NavLink>
 
-                  {/* Sirf user role ke liye */}
                   {user.role === "user" && (
                     <NavLink to="/liked" className={({ isActive }) =>
                       `text-sm font-medium transition ${isActive ? "text-white border-b-2 border-spotify-green pb-0.5" : "text-gray-400 hover:text-white"}`}>
@@ -64,7 +63,6 @@ const Navbar = () => {
                     </NavLink>
                   )}
 
-                  {/* Sirf artist role ke liye */}
                   {user.role === "artist" && (
                     <>
                       <NavLink to="/upload" className={({ isActive }) =>
@@ -77,6 +75,12 @@ const Navbar = () => {
                       </NavLink>
                     </>
                   )}
+
+                  {/* About link — dono roles ke liye */}
+                  <NavLink to="/about" className={({ isActive }) =>
+                    `text-sm font-medium transition ${isActive ? "text-white border-b-2 border-spotify-green pb-0.5" : "text-gray-400 hover:text-white"}`}>
+                    About Dev
+                  </NavLink>
                 </>
               )}
             </div>
@@ -112,7 +116,6 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Edit Profile Modal */}
             {showEditProfile && (
               <EditProfile onClose={() => setShowEditProfile(false)} />
             )}

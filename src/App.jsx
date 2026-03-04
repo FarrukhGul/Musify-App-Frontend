@@ -14,11 +14,10 @@ import CreateAlbum from './components/music/CreateAlbum';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
 import LikedSongs from './components/music/LikedSongs';
-
+import AboutDeveloper from './components/layout/AboutDeveloper';
 import ArtistHome from './components/music/ArtistHome';
 import UserHome from './components/music/UserHome';
 
-// Home component that redirects based on auth status
 const Home = () => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -28,10 +27,8 @@ const Home = () => {
   if (user.role !== 'artist') {
     return <UserHome />
   }
-
   return <MusicList />;
 };
-
 
 function App() {
   console.log('App rendering');
@@ -90,9 +87,16 @@ function App() {
                     <LikedSongs />
                   </ProtectedRoute>
                 } />
+
+                {/* About Developer — dono roles ke liye */}
+                <Route path="/about" element={
+                  <ProtectedRoute>
+                    <AboutDeveloper />
+                  </ProtectedRoute>
+                } />
+
               </Routes>
             </Layout>
-
           </ErrorBoundary>
         </PlayerProvider>
       </AuthProvider>

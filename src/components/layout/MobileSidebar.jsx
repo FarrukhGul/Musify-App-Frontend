@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { FiHome, FiMusic, FiDisc, FiUpload, FiPlusCircle, FiHeart, FiLogOut, FiLogIn, FiX, FiEdit2 } from 'react-icons/fi';
+import { FiHome, FiMusic, FiDisc, FiUpload, FiPlusCircle, FiHeart, FiLogOut, FiLogIn, FiX, FiEdit2, FiUser } from 'react-icons/fi';
 import EditProfile from '../auth/EditProfile';
 
 const MobileSidebar = ({ isOpen, onClose }) => {
@@ -64,7 +64,6 @@ const MobileSidebar = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Edit Profile Button */}
             <button
               onClick={() => { setShowEditProfile(true); onClose(); }}
               className="w-full mt-4 flex items-center justify-center space-x-2 py-2.5 bg-white/5 border border-white/10 hover:bg-spotify-green/10 hover:border-spotify-green/30 text-gray-400 hover:text-spotify-green rounded-xl transition-all duration-300 text-sm font-medium"
@@ -99,7 +98,6 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                   </NavLink>
                 </li>
 
-                {/* Sirf user role ke liye */}
                 {user.role === 'user' && (
                   <li>
                     <NavLink to="/liked" onClick={onClose} className={({ isActive }) =>
@@ -109,7 +107,6 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                   </li>
                 )}
 
-                {/* Sirf artist role ke liye */}
                 {user.role === 'artist' && (
                   <>
                     <li className="pt-3">
@@ -129,6 +126,17 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                     </li>
                   </>
                 )}
+
+                {/* About Dev — dono roles ke liye */}
+                <li className="pt-3">
+                  <p className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Developer</p>
+                </li>
+                <li>
+                  <NavLink to="/about" onClick={onClose} className={({ isActive }) =>
+                    `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-spotify-green/10 text-spotify-green border border-spotify-green/20' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                    <FiUser size={18} /><span className="font-medium text-sm">About Dev</span>
+                  </NavLink>
+                </li>
 
                 <li className="pt-4">
                   <button onClick={handleLogout}
@@ -155,7 +163,6 @@ const MobileSidebar = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
       {showEditProfile && <EditProfile onClose={() => setShowEditProfile(false)} />}
     </>
   );
