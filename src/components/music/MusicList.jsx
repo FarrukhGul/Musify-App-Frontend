@@ -1,13 +1,13 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { musicAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlayer } from '../../hooks/usePlayer';
 import { GradientCover } from '../../utils/gradients.jsx';
-import { FiPlay, FiSearch, FiUpload, FiX, FiHeart } from 'react-icons/fi';
+import { FiPlay, FiSearch, FiUpload, FiX, FiHeart, FiDownload } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import BackButton from '../layout/BackButton';
 
-// ✅ Toast - top center se slide down
+//  Toast - top center  slide down
 const LikeToast = ({ song, visible }) => (
   <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8 pointer-events-none'}`}>
     <div className="flex items-center space-x-3 bg-black/70 border border-spotify-green/40 px-5 py-3 rounded-2xl shadow-2xl shadow-spotify-green/20 backdrop-blur-xl">
@@ -22,14 +22,44 @@ const LikeToast = ({ song, visible }) => (
   </div>
 );
 
-
-
-// ✅ Heart Flash - chota aur blurred bg
+// Heart Flash 
 const HeartFlash = ({ visible }) => (
   <div className={`fixed inset-0 z-40 flex items-center justify-center pointer-events-none transition-all duration-300 ${visible ? 'opacity-100' : 'opacity-0'}`}>
     <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
     <div className={`relative transition-all duration-500 ${visible ? 'scale-100' : 'scale-50'}`}>
       <FiHeart size={80} className="text-spotify-green fill-spotify-green drop-shadow-[0_0_30px_rgba(30,215,96,0.9)]" />
+    </div>
+  </div>
+);
+
+// ✅ Download Toast
+const DownloadToast = ({ visible, title, progress }) => (
+  <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 w-72 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8 pointer-events-none'}`}>
+    <div className="bg-black/80 border border-white/20 px-5 py-4 rounded-2xl shadow-2xl backdrop-blur-xl">
+      <div className="flex items-center space-x-3 mb-3">
+        <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+          <FiDownload size={14} className="text-white animate-bounce" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-sm font-semibold truncate">{title}</p>
+          <p className="text-gray-400 text-xs">
+            {progress < 100 ? `Downloading... ${progress}%` : '✓ Download Complete!'}
+          </p>
+        </div>
+      </div>
+      {/* Progress bar */}
+      <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{
+            width: `${progress}%`,
+            background: progress < 100
+              ? 'linear-gradient(90deg, #1ed760, #1db954)'
+              : 'linear-gradient(90deg, #1ed760, #22d3ee)',
+            boxShadow: '0 0 8px rgba(30,215,96,0.6)'
+          }}
+        />
+      </div>
     </div>
   </div>
 );
@@ -46,36 +76,78 @@ const MusicList = () => {
   const [likedSongs, setLikedSongs] = useState([]);
   const [toast, setToast] = useState({ visible: false, song: '' });
   const [heartFlash, setHeartFlash] = useState(false);
+  const [downloading, setDownloading] = useState({ id: null, progress: 0 });
 
   useEffect(() => {
     if (user) {
       musicAPI.getLikedSongs().then(data => {
         setLikedSongs(data.map(s => s._id));
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }, [user]);
 
   const toggleLike = async (e, track) => {
     e.stopPropagation();
     const isLiked = likedSongs.includes(track._id);
+
+    // ✅ Optimistic update — pehle UI update, phir API
+    if (isLiked) {
+      setLikedSongs(prev => prev.filter(id => id !== track._id));
+    } else {
+      setLikedSongs(prev => [...prev, track._id]);
+      setHeartFlash(true);
+      setTimeout(() => setHeartFlash(false), 700);
+      setToast({ visible: true, song: track.title });
+      setTimeout(() => setToast({ visible: false, song: '' }), 2500);
+    }
+
     try {
       if (isLiked) {
         await musicAPI.unlikeMusic(track._id);
-        setLikedSongs(prev => prev.filter(id => id !== track._id));
       } else {
         await musicAPI.likeMusic(track._id);
-        setLikedSongs(prev => [...prev, track._id]);
-
-        // ✅ Heart flash
-        setHeartFlash(true);
-        setTimeout(() => setHeartFlash(false), 700);
-
-        // ✅ Toast
-        setToast({ visible: true, song: track.title });
-        setTimeout(() => setToast({ visible: false, song: '' }), 2500);
       }
     } catch (err) {
+      // API fail ho toh revert karo
       console.error('Like failed:', err);
+      if (isLiked) {
+        setLikedSongs(prev => [...prev, track._id]);
+      } else {
+        setLikedSongs(prev => prev.filter(id => id !== track._id));
+      }
+    }
+  };
+
+  const handleDownload = async (e, track) => {
+    e.stopPropagation();
+    if (downloading.id) return; // already downloading
+    try {
+      setDownloading({ id: track._id, progress: 10 });
+
+      // Fake smooth progress
+      const interval = setInterval(() => {
+        setDownloading(prev => ({
+          ...prev,
+          progress: prev.progress < 85 ? prev.progress + 15 : prev.progress
+        }));
+      }, 300);
+
+      const response = await musicAPI.downloadMusic(track._id);
+
+      clearInterval(interval);
+      setDownloading({ id: track._id, progress: 100 });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${track.title}.mp3`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      setTimeout(() => setDownloading({ id: null, progress: 0 }), 1500);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setDownloading({ id: null, progress: 0 });
     }
   };
 
@@ -86,9 +158,9 @@ const MusicList = () => {
   }, [user]);
 
   useEffect(() => {
-    if (!searchTerm.trim()) { 
-      setSearchResults(null); 
-      return; 
+    if (!searchTerm.trim()) {
+      setSearchResults(null);
+      return;
     }
     const timer = setTimeout(async () => {
       setSearching(true);
@@ -97,7 +169,7 @@ const MusicList = () => {
         setSearchResults(results);
       } catch (err) {
         console.log(err);
-        
+
         setSearchResults([]);
       } finally {
         setSearching(false);
@@ -180,6 +252,11 @@ const MusicList = () => {
       {/* ✅ Toast + Flash */}
       <LikeToast visible={toast.visible} song={toast.song} />
       <HeartFlash visible={heartFlash} />
+      <DownloadToast
+        visible={downloading.id !== null}
+        title={displayMusic.find(t => t._id === downloading.id)?.title || ''}
+        progress={downloading.progress}
+      />
 
       <BackButton />
 
@@ -192,8 +269,8 @@ const MusicList = () => {
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
             {searching ? (
               <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
             ) : (
               <FiSearch size={16} />
@@ -243,7 +320,7 @@ const MusicList = () => {
             >
               <div className="relative">
                 {track.coverImage ? (
-                  <img src={track.coverImage} alt={track.title} className="w-full aspect-square object-cover rounded-xl mb-4"/>
+                  <img src={track.coverImage} alt={track.title} className="w-full aspect-square object-cover rounded-xl mb-4" />
                 ) : (
                   <GradientCover title={track.title} />
                 )}
@@ -258,6 +335,23 @@ const MusicList = () => {
                     className={`transition-all duration-300 ${likedSongs.includes(track._id) ? 'text-spotify-green fill-spotify-green' : 'text-white'}`}
                   />
                 </button>
+
+                {/* Download button */}
+                {user?.role === 'user' && (
+                  <button
+                    onClick={(e) => handleDownload(e, track)}
+                    className="absolute top-2 left-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10 hover:bg-white/20"
+                  >
+                    {downloading.id === track._id ? (
+                      <svg className="animate-spin h-3.5 w-3.5 text-spotify-green" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                    ) : (
+                      <FiDownload size={15} className="text-white" />
+                    )}
+                  </button>
+                )}
 
                 {/* Play button */}
                 <button className="absolute bottom-6 right-2 w-11 h-11 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg shadow-spotify-green/40 hover:scale-110 hover:bg-emerald-400">

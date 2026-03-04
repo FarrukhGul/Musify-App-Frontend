@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { musicAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlayer } from '../../hooks/usePlayer';
-import { FiMusic, FiDisc, FiPlay, FiPause, FiTrendingUp, FiClock, FiUsers, FiHeadphones, FiHeart } from 'react-icons/fi';
+import { FiMusic, FiDisc, FiPlay, FiPause, FiTrendingUp, FiClock, FiUsers, FiHeadphones, FiHeart, FiDownload } from 'react-icons/fi';
 
 const CoverPlaceholder = ({ title }) => {
   const colors = [
@@ -47,6 +47,38 @@ const HeartFlash = ({ visible }) => (
   </div>
 );
 
+// ✅ Download Toast
+const DownloadToast = ({ visible, title, progress }) => (
+  <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 w-72 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8 pointer-events-none'}`}>
+    <div className="bg-black/80 border border-white/20 px-5 py-4 rounded-2xl shadow-2xl backdrop-blur-xl">
+      <div className="flex items-center space-x-3 mb-3">
+        <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+          <FiDownload size={14} className="text-white animate-bounce" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-sm font-semibold truncate">{title}</p>
+          <p className="text-gray-400 text-xs">
+            {progress < 100 ? `Downloading... ${progress}%` : '✓ Download Complete!'}
+          </p>
+        </div>
+      </div>
+      {/* Progress bar */}
+      <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{
+            width: `${progress}%`,
+            background: progress < 100
+              ? 'linear-gradient(90deg, #1ed760, #1db954)'
+              : 'linear-gradient(90deg, #1ed760, #22d3ee)',
+            boxShadow: '0 0 8px rgba(30,215,96,0.6)'
+          }}
+        />
+      </div>
+    </div>
+  </div>
+);
+
 const UserHome = () => {
   const { user } = useAuth();
   const { playTrack, currentTrack, isPlaying } = usePlayer();
@@ -58,6 +90,7 @@ const UserHome = () => {
   const [likedSongs, setLikedSongs] = useState([]);
   const [toast, setToast] = useState({ visible: false, song: '' });
   const [heartFlash, setHeartFlash] = useState(false);
+  const [downloading, setDownloading] = useState({ id: null, progress: 0 });
 
   useEffect(() => {
     fetchUserData();
@@ -72,27 +105,72 @@ const UserHome = () => {
     if (user) {
       musicAPI.getLikedSongs().then(data => {
         setLikedSongs(data.map(s => s._id));
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }, [user]);
 
   const toggleLike = async (e, track) => {
     e.stopPropagation();
     const isLiked = likedSongs.includes(track._id);
+
+    // ✅ Optimistic update — pehle UI update, phir API
+    if (isLiked) {
+      setLikedSongs(prev => prev.filter(id => id !== track._id));
+    } else {
+      setLikedSongs(prev => [...prev, track._id]);
+      setHeartFlash(true);
+      setTimeout(() => setHeartFlash(false), 700);
+      setToast({ visible: true, song: track.title });
+      setTimeout(() => setToast({ visible: false, song: '' }), 2500);
+    }
+
     try {
       if (isLiked) {
         await musicAPI.unlikeMusic(track._id);
-        setLikedSongs(prev => prev.filter(id => id !== track._id));
       } else {
         await musicAPI.likeMusic(track._id);
-        setLikedSongs(prev => [...prev, track._id]);
-        setHeartFlash(true);
-        setTimeout(() => setHeartFlash(false), 700);
-        setToast({ visible: true, song: track.title });
-        setTimeout(() => setToast({ visible: false, song: '' }), 2500);
       }
     } catch (err) {
+      // API fail ho toh revert karo
       console.error('Like failed:', err);
+      if (isLiked) {
+        setLikedSongs(prev => [...prev, track._id]);
+      } else {
+        setLikedSongs(prev => prev.filter(id => id !== track._id));
+      }
+    }
+  };
+
+  const handleDownload = async (e, track) => {
+    e.stopPropagation();
+    if (downloading.id) return; // already downloading
+    try {
+      setDownloading({ id: track._id, progress: 10 });
+
+      // Fake smooth progress
+      const interval = setInterval(() => {
+        setDownloading(prev => ({
+          ...prev,
+          progress: prev.progress < 85 ? prev.progress + 15 : prev.progress
+        }));
+      }, 300);
+
+      const response = await musicAPI.downloadMusic(track._id);
+
+      clearInterval(interval);
+      setDownloading({ id: track._id, progress: 100 });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${track.title}.mp3`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      setTimeout(() => setDownloading({ id: null, progress: 0 }), 1500);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setDownloading({ id: null, progress: 0 });
     }
   };
 
@@ -139,7 +217,7 @@ const UserHome = () => {
   const handlePlayTrack = (track, trackList) => playTrack(track, trackList);
 
   if (loading) return (
-    <div className="flex justify-center items-center min-h-[400px]">
+    <div className="flex justify-center items-center min-h-100">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-spotify-green"></div>
     </div>
   );
@@ -150,6 +228,11 @@ const UserHome = () => {
       {/* Toast + Flash */}
       <LikeToast visible={toast.visible} song={toast.song} />
       <HeartFlash visible={heartFlash} />
+      <DownloadToast
+        visible={downloading.id !== null}
+        title={recentMusic.find(t => t._id === downloading.id)?.title || ''}
+        progress={downloading.progress}
+      />
 
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-spotify-green/20 to-blue-600/10 border border-spotify-green/20 rounded-2xl p-4 sm:p-6">
@@ -215,12 +298,12 @@ const UserHome = () => {
               >
                 <div className="relative">
                   {track.coverImage ? (
-                    <img src={track.coverImage} alt={track.title} className="w-full aspect-square object-cover rounded-lg mb-2"/>
+                    <img src={track.coverImage} alt={track.title} className="w-full aspect-square object-cover rounded-lg mb-2" />
                   ) : (
                     <CoverPlaceholder title={track.title} />
                   )}
 
-                  {/* ✅ Heart button */}
+                  {/*  Heart button */}
                   <button
                     onClick={(e) => toggleLike(e, track)}
                     className="absolute top-1 right-1 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
@@ -229,6 +312,21 @@ const UserHome = () => {
                       size={12}
                       className={`transition-all duration-300 ${likedSongs.includes(track._id) ? 'text-spotify-green fill-spotify-green' : 'text-white'}`}
                     />
+                  </button>
+
+                  {/* Download Button */}
+                  <button
+                    onClick={(e) => handleDownload(e, track)}
+                    className="absolute top-1 left-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10 hover:bg-white/20"
+                  >
+                    {downloading.id === track._id ? (
+                      <svg className="animate-spin h-3.5 w-3.5 text-spotify-green" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                    ) : (
+                      <FiDownload size={15} className="text-white" />
+                    )}
                   </button>
 
                   {/* Play button */}
@@ -270,7 +368,7 @@ const UserHome = () => {
                 className="bg-white/5 border border-white/10 p-2 sm:p-3 rounded-xl hover:bg-white/10 hover:border-spotify-green/30 transition-all duration-300 group"
               >
                 {album.coverImage ? (
-                  <img src={album.coverImage} alt={album.title} className="w-full aspect-square object-cover rounded-lg mb-2"/>
+                  <img src={album.coverImage} alt={album.title} className="w-full aspect-square object-cover rounded-lg mb-2" />
                 ) : (
                   <CoverPlaceholder title={album.title} />
                 )}
@@ -303,7 +401,7 @@ const UserHome = () => {
                 <div className="flex items-center space-x-3 min-w-0 flex-1">
                   <span className="text-xs text-gray-500 w-5 flex-shrink-0">{index + 1}</span>
                   {track.coverImage ? (
-                    <img src={track.coverImage} alt={track.title} className="w-8 h-8 rounded object-cover flex-shrink-0"/>
+                    <img src={track.coverImage} alt={track.title} className="w-8 h-8 rounded object-cover flex-shrink-0" />
                   ) : (
                     <div className="w-8 h-8 bg-gradient-to-br from-spotify-green/30 to-blue-500/30 rounded flex-shrink-0 flex items-center justify-center">
                       <FiMusic size={12} className="text-spotify-green" />

@@ -99,6 +99,14 @@ export const musicAPI = {
     const response = await api.get('/music/my-music');
     return response.data.musics || [];
   },
+
+  downloadMusic: async (id) => {
+  const response = await api.get(`/music/${id}/download`, {
+    responseType: 'blob'
+  });
+  return response;
+},
+
 };
 
 export default api;
