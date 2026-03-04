@@ -39,9 +39,21 @@ const AboutDeveloper = () => {
         <div className="border-t border-white/10 mb-5" />
 
         {/* Bio */}
-        <p className="text-gray-400 text-sm leading-relaxed mb-6">
-          Passionate CS student currently in my <span className="text-white font-medium">8th semester</span>, building full-stack web apps with modern technologies. I love creating clean, user-friendly experiences — this app is one of my projects. Always learning, always building. 🚀
-        </p>
+<div className="mb-6 space-y-3">
+  <p className="text-gray-400 text-sm leading-relaxed">
+    <span className="text-white font-medium">Bachelor of Computer Science</span> student at{' '}
+    <span className="text-spotify-green font-medium">Minhaj University Lahore</span>, graduating in{' '}
+    <span className="text-white font-medium">2026</span>. I build scalable, production-ready web
+    applications using the <span className="text-white font-medium">MERN stack</span>.This music
+    app is one of them.
+  </p>
+  <p className="text-gray-400 text-sm leading-relaxed">
+    A <span className="text-white font-medium">self-learner</span> at heart,I love picking up new
+    technologies, adapting quickly, and turning ideas into real products. I care deeply about{' '}
+    <span className="text-white font-medium">clean code</span> and great user experiences.
+    Currently seeking opportunities where I can contribute, grow, and ship things that matter. 🚀
+  </p>
+</div>
 
         {/* Skills */}
         <div className="flex flex-wrap gap-2 mb-6">
