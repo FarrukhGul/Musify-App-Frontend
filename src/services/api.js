@@ -100,11 +100,23 @@ export const musicAPI = {
     return response.data.musics || [];
   },
 
+deleteMusic: async (id) => {
+    const response = await api.delete(`/music/${id}`);
+    return response.data;
+},
+
+deleteAlbum: async (id) => {
+    const response = await api.delete(`/music/album/${id}`);
+    return response.data;
+},
+
   downloadMusic: async (id) => {
   const response = await api.get(`/music/${id}/download`, {
     responseType: 'blob'
   });
+
   return response;
+
 },
 
 };

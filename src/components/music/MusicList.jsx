@@ -6,6 +6,8 @@ import { GradientCover } from '../../utils/gradients.jsx';
 import { FiPlay, FiSearch, FiUpload, FiX, FiHeart, FiDownload } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import BackButton from '../layout/BackButton';
+import { MdDelete } from "react-icons/md";
+
 
 //  Toast - top center  slide down
 const LikeToast = ({ song, visible }) => (
@@ -22,7 +24,7 @@ const LikeToast = ({ song, visible }) => (
   </div>
 );
 
-// Heart Flash 
+// Heart Flash
 const HeartFlash = ({ visible }) => (
   <div className={`fixed inset-0 z-40 flex items-center justify-center pointer-events-none transition-all duration-300 ${visible ? 'opacity-100' : 'opacity-0'}`}>
     <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
@@ -32,7 +34,7 @@ const HeartFlash = ({ visible }) => (
   </div>
 );
 
-// ✅ Download Toast
+// Download Toast
 const DownloadToast = ({ visible, title, progress }) => (
   <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 w-72 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8 pointer-events-none'}`}>
     <div className="bg-black/80 border border-white/20 px-5 py-4 rounded-2xl shadow-2xl backdrop-blur-xl">
@@ -47,7 +49,6 @@ const DownloadToast = ({ visible, title, progress }) => (
           </p>
         </div>
       </div>
-      {/* Progress bar */}
       <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-300"
@@ -78,6 +79,33 @@ const MusicList = () => {
   const [heartFlash, setHeartFlash] = useState(false);
   const [downloading, setDownloading] = useState({ id: null, progress: 0 });
 
+  // ✅ Delete state — confirmId for two-step, deletingId for animation
+  const [confirmId, setConfirmId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDeleteMusic = async (id) => {
+    // First click → confirm state
+    if (confirmId !== id) {
+      setConfirmId(id);
+      setTimeout(() => setConfirmId(null), 3000);
+      return;
+    }
+
+    // Second click → delete
+    try {
+      setDeletingId(id);
+      setConfirmId(null);
+      await musicAPI.deleteMusic(id);
+      setTimeout(() => {
+        setMusic(prev => prev.filter(track => track._id !== id));
+        setDeletingId(null);
+      }, 400);
+    } catch (e) {
+      console.log(e);
+      setDeletingId(null);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       musicAPI.getLikedSongs().then(data => {
@@ -90,7 +118,6 @@ const MusicList = () => {
     e.stopPropagation();
     const isLiked = likedSongs.includes(track._id);
 
-    // ✅ Optimistic update — pehle UI update, phir API
     if (isLiked) {
       setLikedSongs(prev => prev.filter(id => id !== track._id));
     } else {
@@ -108,7 +135,6 @@ const MusicList = () => {
         await musicAPI.likeMusic(track._id);
       }
     } catch (err) {
-      // API fail ho toh revert karo
       console.error('Like failed:', err);
       if (isLiked) {
         setLikedSongs(prev => [...prev, track._id]);
@@ -138,14 +164,18 @@ const MusicList = () => {
 
       const blob = new Blob([response.data], { type: 'audio/mpeg' });
       const url = window.URL.createObjectURL(blob);
+
+      const disposition = response.headers?.['content-disposition'] || '';
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      const filename = match ? match[1] : `${track.title}.mp3`;
+
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${track.title}.mp3`;
-      document.body.appendChild(a); // Android ke liye zaroori
+      a.download = filename;
+      document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-
       setTimeout(() => setDownloading({ id: null, progress: 0 }), 1500);
     } catch (err) {
       console.error('Download failed:', err);
@@ -171,7 +201,6 @@ const MusicList = () => {
         setSearchResults(results);
       } catch (err) {
         console.log(err);
-
         setSearchResults([]);
       } finally {
         setSearching(false);
@@ -200,7 +229,7 @@ const MusicList = () => {
       setMusic(Array.isArray(data) ? data : []);
       setError('');
     } catch (err) {
-      console.log(err)
+      console.log(err);
       setError('Failed to load your music');
     } finally {
       setLoading(false);
@@ -251,7 +280,52 @@ const MusicList = () => {
 
   return (
     <div className="space-y-6">
-      {/* ✅ Toast + Flash */}
+      <style>{`
+        @keyframes trackFadeIn {
+          from { opacity: 0; transform: translateY(16px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes trackFadeOut {
+          from { opacity: 1; transform: scale(1); }
+          to   { opacity: 0; transform: scale(0.92); }
+        }
+        @keyframes deleteShake {
+          0%,100% { transform: translateX(0) rotate(0deg); }
+          20%     { transform: translateX(-3px) rotate(-8deg); }
+          40%     { transform: translateX(3px) rotate(8deg); }
+          60%     { transform: translateX(-2px) rotate(-5deg); }
+          80%     { transform: translateX(2px) rotate(5deg); }
+        }
+        @keyframes confirmPulse {
+          0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+          50%     { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+        }
+        @keyframes spinDelete {
+          from { transform: rotate(0deg) scale(1.2); }
+          to   { transform: rotate(360deg) scale(0); }
+        }
+        .track-card {
+          animation: trackFadeIn 0.35s ease forwards;
+        }
+        .track-card-deleting {
+          animation: trackFadeOut 0.4s ease forwards;
+          pointer-events: none;
+        }
+        .delete-btn {
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .delete-btn:hover .delete-icon {
+          animation: deleteShake 0.4s ease;
+        }
+        .delete-btn-confirm {
+          animation: confirmPulse 0.8s ease infinite;
+        }
+        .delete-btn-deleting .delete-icon {
+          animation: spinDelete 0.4s ease forwards;
+        }
+      `}</style>
+
+      {/* Toast + Flash */}
       <LikeToast visible={toast.visible} song={toast.song} />
       <HeartFlash visible={heartFlash} />
       <DownloadToast
@@ -314,59 +388,101 @@ const MusicList = () => {
       {/* Music Grid */}
       {displayMusic.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-          {displayMusic.map((track) => (
+          {displayMusic.map((track, index) => (
+            // ✅ Fix 1: outer div with relative, not the card itself
             <div
               key={track._id || track.id}
-              className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 group cursor-pointer hover:shadow-xl hover:shadow-black/30"
-              onClick={() => handlePlayTrack(track)}
+              className={`relative group ${deletingId === track._id ? 'track-card-deleting' : 'track-card'}`}
+              style={{ animationDelay: `${index * 40}ms` }}
             >
-              <div className="relative">
-                {track.coverImage ? (
-                  <img src={track.coverImage} alt={track.title} className="w-full aspect-square object-cover rounded-xl mb-4" />
-                ) : (
-                  <GradientCover title={track.title} />
-                )}
-
-                {/* Heart button */}
-                <button
-                  onClick={(e) => toggleLike(e, track)}
-                  className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
-                >
-                  <FiHeart
-                    size={15}
-                    className={`transition-all duration-300 ${likedSongs.includes(track._id) ? 'text-spotify-green fill-spotify-green' : 'text-white'}`}
-                  />
-                </button>
-
-                {/* Download button */}
-                {user?.role === 'user' && (
+              {/* ✅ Fix 2: Delete button OUTSIDE the clickable card, only for artists */}
+              {user?.role === 'artist' && (
+                <>
                   <button
-                    onClick={(e) => handleDownload(e, track)}
-                    className="absolute top-2 left-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10 hover:bg-white/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteMusic(track._id);
+                    }}
+                    title={confirmId === track._id ? "Click again to confirm" : "Delete track"}
+                    className={`
+                      delete-btn absolute top-2 left-2 z-10
+                      w-8 h-8 rounded-full flex items-center justify-center
+                      opacity-100 sm:opacity-0 sm:group-hover:opacity-100
+                      ${confirmId === track._id
+                        ? 'delete-btn-confirm bg-red-500 text-white scale-110'
+                        : 'bg-black/60 text-red-400 hover:bg-red-500 hover:text-white hover:scale-110'
+                      }
+                      ${deletingId === track._id ? 'delete-btn-deleting' : ''}
+                    `}
                   >
-                    {downloading.id === track._id ? (
-                      <svg className="animate-spin h-3.5 w-3.5 text-spotify-green" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                      </svg>
-                    ) : (
-                      <FiDownload size={15} className="text-white" />
-                    )}
+                    <span className="delete-icon flex items-center justify-center">
+                      {confirmId === track._id ? '?' : <MdDelete size={16} />}
+                    </span>
                   </button>
-                )}
 
-                {/* Play button */}
-                <button className="absolute bottom-6 right-2 w-11 h-11 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg shadow-spotify-green/40 hover:scale-110 hover:bg-emerald-400">
-                  <FiPlay size={18} className="text-black ml-0.5" />
-                </button>
+                  {/* Confirm tooltip */}
+                  {confirmId === track._id && (
+                    <div className="absolute top-11 left-2 z-20 bg-red-500 text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap shadow-lg">
+                      Click again to delete
+                      <div className="absolute -top-1 left-3 w-2 h-2 bg-red-500 rotate-45" />
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ✅ Fix 3: Card content is the clickable area */}
+              <div
+                className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer hover:shadow-xl hover:shadow-black/30"
+                onClick={() => handlePlayTrack(track)}
+              >
+                <div className="relative">
+                  {track.coverImage ? (
+                    <img src={track.coverImage} alt={track.title} className="w-full aspect-square object-cover rounded-xl mb-4" />
+                  ) : (
+                    <GradientCover title={track.title} />
+                  )}
+
+                  {/* Heart button */}
+                  <button
+                    onClick={(e) => toggleLike(e, track)}
+                    className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
+                  >
+                    <FiHeart
+                      size={15}
+                      className={`transition-all duration-300 ${likedSongs.includes(track._id) ? 'text-spotify-green fill-spotify-green' : 'text-white'}`}
+                    />
+                  </button>
+
+                  {/* Download button — only for users */}
+                  {user?.role === 'user' && (
+                    <button
+                      onClick={(e) => handleDownload(e, track)}
+                      className="absolute top-2 left-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10 hover:bg-white/20"
+                    >
+                      {downloading.id === track._id ? (
+                        <svg className="animate-spin h-3.5 w-3.5 text-spotify-green" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : (
+                        <FiDownload size={15} className="text-white" />
+                      )}
+                    </button>
+                  )}
+
+                  {/* Play button */}
+                  <button className="absolute bottom-6 right-2 w-11 h-11 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg shadow-spotify-green/40 hover:scale-110 hover:bg-emerald-400">
+                    <FiPlay size={18} className="text-black ml-0.5" />
+                  </button>
+                </div>
+
+                <h3 className="font-semibold truncate text-white">{track.title}</h3>
+                <p className="text-sm text-gray-400 truncate mt-0.5">
+                  {typeof track.artist === 'object'
+                    ? (track.artist?.username || track.artist?.email || 'Unknown Artist')
+                    : (track.artist || 'Unknown Artist')}
+                </p>
               </div>
-
-              <h3 className="font-semibold truncate text-white">{track.title}</h3>
-              <p className="text-sm text-gray-400 truncate mt-0.5">
-                {typeof track.artist === 'object'
-                  ? (track.artist?.username || track.artist?.email || 'Unknown Artist')
-                  : (track.artist || 'Unknown Artist')}
-              </p>
             </div>
           ))}
         </div>

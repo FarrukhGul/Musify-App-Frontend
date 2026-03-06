@@ -161,10 +161,16 @@ const UserHome = () => {
 
       const blob = new Blob([response.data], { type: 'audio/mpeg' });
       const url = window.URL.createObjectURL(blob);
+
+      // Content-Disposition header se filename nikalo
+      const disposition = response.headers?.['content-disposition'] || '';
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      const filename = match ? match[1] : `${track.title}.mp3`;
+
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${track.title}.mp3`;
-      document.body.appendChild(a); // Android ke liye zaroori
+      a.download = filename;
+      document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       setTimeout(() => window.URL.revokeObjectURL(url), 1000);
