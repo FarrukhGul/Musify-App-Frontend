@@ -5,30 +5,30 @@ import { useAuth } from "../../hooks/useAuth";
 import { GradientCover } from '../../utils/gradients.jsx';
 import BackButton from '../layout/BackButton';
 import { MdDelete } from "react-icons/md";
+import DeleteConfirmModal from './DeleteConfirmModal';
 
 const AlbumList = () => {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
-  const [confirmId, setConfirmId] = useState(null);
   const { user } = useAuth();
 
-  const handleDeleteAlbum = async (id) => {
-    // First click → show confirm state
-    if (confirmId !== id) {
-      setConfirmId(id);
-      // Auto-reset confirm after 3 seconds
-      setTimeout(() => setConfirmId(null), 3000);
-      return;
-    }
+  // ✅ Delete modal state
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, title: '' });
 
-    // Second click → actually delete
+  const handleDeleteClick = (e, album) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setDeleteModal({ open: true, id: album._id, title: album.title });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const id = deleteModal.id;
+    setDeleteModal({ open: false, id: null, title: '' });
+    setDeletingId(id);
     try {
-      setDeletingId(id);
-      setConfirmId(null);
       await musicAPI.deleteAlbum(id);
-      // Small delay for exit animation
       setTimeout(() => {
         setAlbums(prev => prev.filter(album => album._id !== id));
         setDeletingId(null);
@@ -37,6 +37,10 @@ const AlbumList = () => {
       console.log(e);
       setDeletingId(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({ open: false, id: null, title: '' });
   };
 
   useEffect(() => {
@@ -131,42 +135,24 @@ const AlbumList = () => {
         }
         @keyframes albumFadeOut {
           from { opacity: 1; transform: scale(1); }
-          to   { opacity: 0; transform: scale(0.92); }
+          to   { opacity: 0; transform: scale(0.88) translateY(10px); }
         }
-        @keyframes deleteShake {
-          0%,100% { transform: translateX(0) rotate(0deg); }
-          20%     { transform: translateX(-3px) rotate(-8deg); }
-          40%     { transform: translateX(3px) rotate(8deg); }
-          60%     { transform: translateX(-2px) rotate(-5deg); }
-          80%     { transform: translateX(2px) rotate(5deg); }
-        }
-        @keyframes confirmPulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
-          50%     { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
-        }
-        @keyframes spinDelete {
-          from { transform: rotate(0deg) scale(1.2); }
-          to   { transform: rotate(360deg) scale(0); }
-        }
-        .album-card {
-          animation: albumFadeIn 0.35s ease forwards;
-        }
+        .album-card { animation: albumFadeIn 0.35s ease forwards; }
         .album-card-deleting {
           animation: albumFadeOut 0.4s ease forwards;
-        }
-        .delete-btn {
-          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .delete-btn:hover .delete-icon {
-          animation: deleteShake 0.4s ease;
-        }
-        .delete-btn-confirm {
-          animation: confirmPulse 0.8s ease infinite;
-        }
-        .delete-btn-deleting .delete-icon {
-          animation: spinDelete 0.4s ease forwards;
+          pointer-events: none;
         }
       `}</style>
+
+      {/* ✅ Delete Confirm Modal */}
+      <DeleteConfirmModal
+        key={deleteModal.id}
+        open={deleteModal.open}
+        title={deleteModal.title}
+        type="album"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
 
       <BackButton />
       <h1 className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold mb-8">
@@ -175,47 +161,23 @@ const AlbumList = () => {
 
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
         {albums.map((album, index) => (
-          // ✅ Fix 1: outer div instead of Link, so delete button doesn't trigger navigation
           <div
             key={album._id}
             className={`relative group ${deletingId === album._id ? 'album-card-deleting' : 'album-card'}`}
             style={{ animationDelay: `${index * 40}ms` }}
           >
-            {/* ✅ Fix 2: Delete button OUTSIDE Link */}
+            {/* Delete button — outside Link, artists only */}
             {user?.role === 'artist' && (
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteAlbum(album._id);
-                }}
-                title={confirmId === album._id ? "Click again to confirm" : "Delete album"}
-                className={`
-                  delete-btn absolute top-2 left-2 z-10
-                  w-8 h-8 rounded-full flex items-center justify-center
-                  opacity-100 sm:opacity-0 sm:group-hover:opacity-100
-                  transition-all duration-200
-                  ${confirmId === album._id
-                    ? 'delete-btn-confirm bg-red-500 text-white scale-110'
-                    : 'bg-black/60 text-red-400 hover:bg-red-500 hover:text-white hover:scale-110'
-                  }
-                  ${deletingId === album._id ? 'delete-btn-deleting' : ''}
-                `}
+                onClick={(e) => handleDeleteClick(e, album)}
+                title="Delete album"
+                className="absolute top-4 left-4 z-10 w-8 h-8 rounded-full flex items-center justify-center bg-black/60 text-red-400 hover:bg-red-500 hover:text-white hover:scale-110 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200"
               >
-                <span className="delete-icon">
-                  {confirmId === album._id ? '?' : <MdDelete size={16} />}
-                </span>
+                <MdDelete size={16} />
               </button>
             )}
 
-            {/* Confirm tooltip */}
-            {confirmId === album._id && (
-              <div className="absolute top-11 left-2 z-20 bg-red-500 text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap shadow-lg">
-                Click again to delete
-                <div className="absolute -top-1 left-3 w-2 h-2 bg-red-500 rotate-45" />
-              </div>
-            )}
-
-            {/* ✅ Fix 3: Link wraps only the card content */}
+            {/*  Link wraps only the card */}
             <Link
               to={`/albums/${album._id}`}
               className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 transition-all duration-300 block"

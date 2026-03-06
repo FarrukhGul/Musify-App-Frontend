@@ -7,7 +7,7 @@ import { FiPlay, FiSearch, FiUpload, FiX, FiHeart, FiDownload } from 'react-icon
 import { Link } from 'react-router-dom';
 import BackButton from '../layout/BackButton';
 import { MdDelete } from "react-icons/md";
-
+import DeleteConfirmModal from './DeleteConfirmModal';
 
 //  Toast - top center  slide down
 const LikeToast = ({ song, visible }) => (
@@ -79,22 +79,20 @@ const MusicList = () => {
   const [heartFlash, setHeartFlash] = useState(false);
   const [downloading, setDownloading] = useState({ id: null, progress: 0 });
 
-  // ✅ Delete state — confirmId for two-step, deletingId for animation
-  const [confirmId, setConfirmId] = useState(null);
+  // ✅ Delete modal state
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, title: '' });
   const [deletingId, setDeletingId] = useState(null);
 
-  const handleDeleteMusic = async (id) => {
-    // First click → confirm state
-    if (confirmId !== id) {
-      setConfirmId(id);
-      setTimeout(() => setConfirmId(null), 3000);
-      return;
-    }
+  const handleDeleteClick = (e, track) => {
+    e.stopPropagation();
+    setDeleteModal({ open: true, id: track._id, title: track.title });
+  };
 
-    // Second click → delete
+  const handleDeleteConfirm = async () => {
+    const id = deleteModal.id;
+    setDeleteModal({ open: false, id: null, title: '' });
+    setDeletingId(id);
     try {
-      setDeletingId(id);
-      setConfirmId(null);
       await musicAPI.deleteMusic(id);
       setTimeout(() => {
         setMusic(prev => prev.filter(track => track._id !== id));
@@ -104,6 +102,10 @@ const MusicList = () => {
       console.log(e);
       setDeletingId(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({ open: false, id: null, title: '' });
   };
 
   useEffect(() => {
@@ -287,43 +289,24 @@ const MusicList = () => {
         }
         @keyframes trackFadeOut {
           from { opacity: 1; transform: scale(1); }
-          to   { opacity: 0; transform: scale(0.92); }
+          to   { opacity: 0; transform: scale(0.88) translateY(10px); }
         }
-        @keyframes deleteShake {
-          0%,100% { transform: translateX(0) rotate(0deg); }
-          20%     { transform: translateX(-3px) rotate(-8deg); }
-          40%     { transform: translateX(3px) rotate(8deg); }
-          60%     { transform: translateX(-2px) rotate(-5deg); }
-          80%     { transform: translateX(2px) rotate(5deg); }
-        }
-        @keyframes confirmPulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
-          50%     { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
-        }
-        @keyframes spinDelete {
-          from { transform: rotate(0deg) scale(1.2); }
-          to   { transform: rotate(360deg) scale(0); }
-        }
-        .track-card {
-          animation: trackFadeIn 0.35s ease forwards;
-        }
+        .track-card { animation: trackFadeIn 0.35s ease forwards; }
         .track-card-deleting {
           animation: trackFadeOut 0.4s ease forwards;
           pointer-events: none;
         }
-        .delete-btn {
-          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .delete-btn:hover .delete-icon {
-          animation: deleteShake 0.4s ease;
-        }
-        .delete-btn-confirm {
-          animation: confirmPulse 0.8s ease infinite;
-        }
-        .delete-btn-deleting .delete-icon {
-          animation: spinDelete 0.4s ease forwards;
-        }
       `}</style>
+
+      {/*  Delete Confirm Modal */}
+      <DeleteConfirmModal
+        key={deleteModal.id}
+        open={deleteModal.open}
+        title={deleteModal.title}
+        type="song"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
 
       {/* Toast + Flash */}
       <LikeToast visible={toast.visible} song={toast.song} />
@@ -389,48 +372,23 @@ const MusicList = () => {
       {displayMusic.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
           {displayMusic.map((track, index) => (
-            // ✅ Fix 1: outer div with relative, not the card itself
             <div
               key={track._id || track.id}
               className={`relative group ${deletingId === track._id ? 'track-card-deleting' : 'track-card'}`}
               style={{ animationDelay: `${index * 40}ms` }}
             >
-              {/* ✅ Fix 2: Delete button OUTSIDE the clickable card, only for artists */}
+              {/*  Delete button — outside card, artists only */}
               {user?.role === 'artist' && (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteMusic(track._id);
-                    }}
-                    title={confirmId === track._id ? "Click again to confirm" : "Delete track"}
-                    className={`
-                      delete-btn absolute top-2 left-2 z-10
-                      w-8 h-8 rounded-full flex items-center justify-center
-                      opacity-100 sm:opacity-0 sm:group-hover:opacity-100
-                      ${confirmId === track._id
-                        ? 'delete-btn-confirm bg-red-500 text-white scale-110'
-                        : 'bg-black/60 text-red-400 hover:bg-red-500 hover:text-white hover:scale-110'
-                      }
-                      ${deletingId === track._id ? 'delete-btn-deleting' : ''}
-                    `}
-                  >
-                    <span className="delete-icon flex items-center justify-center">
-                      {confirmId === track._id ? '?' : <MdDelete size={16} />}
-                    </span>
-                  </button>
-
-                  {/* Confirm tooltip */}
-                  {confirmId === track._id && (
-                    <div className="absolute top-11 left-2 z-20 bg-red-500 text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap shadow-lg">
-                      Click again to delete
-                      <div className="absolute -top-1 left-3 w-2 h-2 bg-red-500 rotate-45" />
-                    </div>
-                  )}
-                </>
+                <button
+                  onClick={(e) => handleDeleteClick(e, track)}
+                  title="Delete track"
+                  className="absolute top-5 left-4 sm:top-4 sm:left-4 md:top-4 md:left-4 lg:top-6 lg:left-6 z-10 w-8 h-8 rounded-full flex items-center justify-center bg-black/60 text-red-400 hover:bg-red-500 hover:text-white hover:scale-110 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200"
+                >
+                  <MdDelete size={16} />
+                </button>
               )}
 
-              {/* ✅ Fix 3: Card content is the clickable area */}
+              {/* Card */}
               <div
                 className="bg-white/5 border border-white/10 p-2.5 sm:p-4 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer hover:shadow-xl hover:shadow-black/30"
                 onClick={() => handlePlayTrack(track)}
