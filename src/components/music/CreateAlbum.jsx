@@ -61,28 +61,28 @@ const CreateAlbum = () => {
       setFormData({ ...formData, musics: filteredTracks.map((t) => t._id) });
     }
   };
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
 
     try {
-        const data = new FormData();     
-        data.append('title', formData.title);
-        data.append('musics', JSON.stringify(formData.musics));
-        if (formData.coverImage) {
-            data.append('coverImage', formData.coverImage);
-        }
+      const data = new FormData();
+      data.append('title', formData.title);
+      data.append('musics', JSON.stringify(formData.musics));
+      if (formData.coverImage) {
+        data.append('coverImage', formData.coverImage);
+      }
 
-        await musicAPI.createAlbum(data);  // FormData send
-        setSuccess("Album created successfully!");
-        setTimeout(() => navigate("/albums"), 2000);
+      await musicAPI.createAlbum(data);  // FormData send
+      setSuccess("Album created successfully!");
+      setTimeout(() => navigate("/albums"), 2000);
     } catch (err) {
-        setError(err.response?.data?.message || "Failed to create album");
+      setError(err.response?.data?.message || "Failed to create album");
     } finally {
-        setSubmitting(false);
+      setSubmitting(false);
     }
-};
+  };
 
   const filteredTracks = availableTracks.filter((track) =>
     track.title?.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -116,7 +116,7 @@ const handleSubmit = async (e) => {
           </div>
         )}
 
-        <div className="bg-spotify-dark rounded-lg p-4 sm:p-6">
+        <div className="bg-white/5 rounded-lg p-4 sm:p-6">
           <label
             htmlFor="title"
             className="block text-sm font-medium text-spotify-gray mb-2"
@@ -131,13 +131,13 @@ const handleSubmit = async (e) => {
               setFormData({ ...formData, title: e.target.value })
             }
             required
-            className="w-full px-4 py-3 bg-spotify-light border border-transparent rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-spotify-green"
+            className="w-full px-4 py-3 bg-white/5 border border-transparent rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-spotify-green"
             placeholder="e.g., My Greatest Hits"
           />
         </div>
 
         {/* Cover Image Upload */}
-        <div className="bg-spotify-dark rounded-lg p-4 sm:p-6">
+        <div className="bg-white/5 rounded-lg p-4 sm:p-6">
           <label className="block text-sm font-medium text-spotify-gray mb-2">
             Album Cover Image <span className="text-gray-500">(optional)</span>
           </label>
@@ -174,7 +174,7 @@ const handleSubmit = async (e) => {
             />
           </label>
         </div>
-        <div className="bg-spotify-dark rounded-lg p-4 sm:p-6">
+        <div className="bg-white/5 rounded-lg p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
             <h2 className="text-lg sm:text-xl font-semibold">Select Tracks</h2>
             {availableTracks.length > 0 && (
@@ -198,7 +198,7 @@ const handleSubmit = async (e) => {
                   placeholder="Search your tracks..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 pl-10 bg-spotify-light border border-transparent rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-spotify-green"
+                  className="w-full px-4 py-2 pl-10 bg-white/5  border border-transparent rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-spotify-green"
                 />
                 <svg
                   className="absolute left-3 top-2.5 w-4 h-4 text-spotify-gray"
@@ -218,7 +218,7 @@ const handleSubmit = async (e) => {
           )}
 
           {availableTracks.length === 0 ? (
-            <div className="text-center py-8 sm:py-12 bg-spotify-light rounded-lg">
+            <div className="text-center py-8 sm:py-12 bg-white/5 rounded-lg">
               <p className="text-spotify-gray mb-4">
                 You haven't uploaded any tracks yet.
               </p>
@@ -230,7 +230,7 @@ const handleSubmit = async (e) => {
               </a>
             </div>
           ) : filteredTracks.length === 0 ? (
-            <div className="text-center py-8 bg-spotify-light rounded-lg">
+            <div className="text-center py-8 bg-white/5  rounded-lg">
               <p className="text-spotify-gray">No tracks match your search.</p>
             </div>
           ) : (
@@ -248,14 +248,14 @@ const handleSubmit = async (e) => {
                     <label
                       htmlFor={`track-${track._id}`}
                       className={`flex items-center p-3 rounded-lg cursor-pointer transition ${formData.musics.includes(track._id)
-                          ? "bg-spotify-green/20 border border-spotify-green"
-                          : "bg-spotify-light hover:bg-spotify-light/80"
+                        ? "bg-spotify-green/20 border border-spotify-green"
+                        : "bg-white/5  hover:bg-spotify-light/80"
                         }`}
                     >
                       <div
                         className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mr-3 transition ${formData.musics.includes(track._id)
-                            ? "bg-spotify-green border-spotify-green"
-                            : "border-spotify-gray bg-transparent"
+                          ? "bg-spotify-green border-spotify-green"
+                          : "border-spotify-gray bg-transparent"
                           }`}
                       >
                         {formData.musics.includes(track._id) && (
@@ -268,34 +268,21 @@ const handleSubmit = async (e) => {
                           </svg>
                         )}
                       </div>
-                      <img
-                        src={
-                          track.coverImage ? (
-                            <img
-                              src={track.coverImage}
-                              alt={track.title}
-                              className="w-10 h-10 object-cover rounded mr-3"
-                            />
-                          ) : (
-                            <div
-                              className={`w-10 h-10 rounded bg-gradient-to-br ${getGradient(track.title)} flex items-center justify-center mr-3 flex-shrink-0`}
-                            >
-                              <svg
-                                className="w-5 h-5 text-white opacity-80"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                              </svg>
-                            </div>
-                          )
-                        }
-                        alt={track.title}
-                        className="w-10 h-10 object-cover rounded mr-3"
-                        onError={(e) => {
-                          e.target.src = MUSIC_PLACEHOLDER;
-                        }}
-                      />
+              
+                      {track.coverImage ? (
+                        <img
+                          src={track.coverImage}
+                          alt={track.title}
+                          className="w-10 h-10 object-cover rounded mr-3 flex-shrink-0"
+                          onError={(e) => { e.target.src = MUSIC_PLACEHOLDER; }}
+                        />
+                      ) : (
+                        <div className={`w-10 h-10 rounded bg-gradient-to-br ${getGradient(track.title)} flex items-center justify-center mr-3 flex-shrink-0`}>
+                          <svg className="w-5 h-5 text-white opacity-80" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                          </svg>
+                        </div>
+                      )}
                       <div className="flex-1">
                         <p className="font-medium text-sm sm:text-base">
                           {track.title}
