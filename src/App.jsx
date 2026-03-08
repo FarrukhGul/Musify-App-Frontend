@@ -17,6 +17,7 @@ import LikedSongs from './components/music/LikedSongs';
 import AboutDeveloper from './components/layout/AboutDeveloper';
 import ArtistHome from './components/music/ArtistHome';
 import UserHome from './components/music/UserHome';
+import NotFound from './components/NotFound';
 
 const Home = () => {
   const { user } = useAuth();
@@ -94,6 +95,7 @@ function App() {
                     <AboutDeveloper />
                   </ProtectedRoute>
                 } />
+             <Route path="*" element={<NotFound />} />
 
               </Routes>
             </Layout>

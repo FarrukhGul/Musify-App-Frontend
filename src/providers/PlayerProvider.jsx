@@ -36,6 +36,15 @@ const playTrack = (track, tracks = []) => {
     setIsPlaying(prev => !prev);
   };
 
+
+const clearTrack = (trackId) => {
+    if (currentTrack?._id === trackId) {
+      setCurrentTrack(null);
+      setIsPlaying(false);
+      setQueue([]);
+    }
+};
+
   const playNext = () => {
     if (queue.length > 0) {
       const nextTrack = queue[0];
@@ -62,6 +71,7 @@ const playTrack = (track, tracks = []) => {
       togglePlay,
       playNext,
       playPrevious,
+      clearTrack, 
       setVolume,
     }}>
       {children}

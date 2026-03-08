@@ -73,7 +73,7 @@ const MusicList = () => {
   const [searchResults, setSearchResults] = useState(null);
   const [searching, setSearching] = useState(false);
   const { user } = useAuth();
-  const { playTrack } = usePlayer();
+const { playTrack, clearTrack } = usePlayer();
   const [likedSongs, setLikedSongs] = useState([]);
   const [toast, setToast] = useState({ visible: false, song: '' });
   const [heartFlash, setHeartFlash] = useState(false);
@@ -94,6 +94,7 @@ const MusicList = () => {
     setDeletingId(id);
     try {
       await musicAPI.deleteMusic(id);
+       clearTrack(id);  
       setTimeout(() => {
         setMusic(prev => prev.filter(track => track._id !== id));
         setDeletingId(null);

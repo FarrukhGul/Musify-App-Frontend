@@ -6,12 +6,16 @@ import { GradientCover } from '../../utils/gradients.jsx';
 import BackButton from '../layout/BackButton';
 import { MdDelete } from "react-icons/md";
 import DeleteConfirmModal from './DeleteConfirmModal';
+import { usePlayer } from '../../hooks/usePlayer';
 
 const AlbumList = () => {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+
+   const { clearTrack } = usePlayer();
+
   const { user } = useAuth();
 
   // ✅ Delete modal state
@@ -23,12 +27,19 @@ const AlbumList = () => {
     setDeleteModal({ open: true, id: album._id, title: album.title });
   };
 
-  const handleDeleteConfirm = async () => {
+const handleDeleteConfirm = async () => {
     const id = deleteModal.id;
+    const albumToDelete = albums.find(a => a._id === id); // ← album dhundo
     setDeleteModal({ open: false, id: null, title: '' });
     setDeletingId(id);
     try {
       await musicAPI.deleteAlbum(id);
+      
+      // ← album ke har track ko clear karo player se
+      albumToDelete?.musics?.forEach(track => {
+        clearTrack(track._id || track);
+      });
+
       setTimeout(() => {
         setAlbums(prev => prev.filter(album => album._id !== id));
         setDeletingId(null);
@@ -37,7 +48,7 @@ const AlbumList = () => {
       console.log(e);
       setDeletingId(null);
     }
-  };
+};
 
   const handleDeleteCancel = () => {
     setDeleteModal({ open: false, id: null, title: '' });

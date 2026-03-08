@@ -133,12 +133,22 @@ const AudioPlayer = () => {
     }
   }, [currentTrack]);
 
+  const isPlayingRef = useRef(isPlaying);
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+
+  useEffect(() => {
+    if (audioRef.current && isReady) {
+      if (isPlayingRef.current) audioRef.current.play().catch(() => setError('Failed to play audio'));
+      else audioRef.current.pause();
+    }
+  }, [isReady]);
+
   useEffect(() => {
     if (audioRef.current && isReady) {
       if (isPlaying) audioRef.current.play().catch(() => setError('Failed to play audio'));
       else audioRef.current.pause();
     }
-  }, [isPlaying, isReady]);
+  }, [isPlaying]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume;
@@ -156,7 +166,6 @@ const AudioPlayer = () => {
   const VolumeIcon = volume === 0 ? FiVolumeX : volume < 0.5 ? FiVolume1 : FiVolume2;
 
   if (!user || !currentTrack) return null;
-  
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-[#0f0f1a] via-[#1a1a2e] to-[#0f0f1a] border-t border-white/10 px-4 py-3 z-50 backdrop-blur-md">
