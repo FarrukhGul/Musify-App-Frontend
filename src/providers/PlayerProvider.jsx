@@ -7,14 +7,18 @@ export const PlayerProvider = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
 
-  const playTrack = (track, tracks = []) => {
-    console.log('Playing track:', track);
+const playTrack = (track, tracks = []) => {
+    // ✅ Same track hai toh sirf toggle karo
+    if (currentTrack?._id === track._id) {
+      setIsPlaying(prev => !prev);
+      return;
+    }
+
+    // Baaki sab same
     setCurrentTrack(track);
     if (tracks.length > 0) {
-      // Find current track index
       const currentIndex = tracks.findIndex(t => t._id === track._id);
       if (currentIndex !== -1) {
-        // Create queue: tracks after current + tracks before current
         const newQueue = [
           ...tracks.slice(currentIndex + 1),
           ...tracks.slice(0, currentIndex)
@@ -28,7 +32,6 @@ export const PlayerProvider = ({ children }) => {
     }
     setIsPlaying(true);
   };
-
   const togglePlay = () => {
     setIsPlaying(prev => !prev);
   };
