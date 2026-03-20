@@ -47,7 +47,7 @@ npm install
 Create `.env` in the root:
 
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:3000/api
 ```
 
 > For production, set `VITE_API_URL` in Vercel dashboard → Settings → Environment Variables
