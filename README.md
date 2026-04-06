@@ -115,3 +115,4 @@ src/
 
 MIT
 # Musify-App-Frontend
+# Musify-App-Frontend
