@@ -114,3 +114,4 @@ src/
 ## 📄 License
 
 MIT
+# Musify-App-Frontend
